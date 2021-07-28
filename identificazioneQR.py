@@ -5,11 +5,17 @@ import numpy as np
 # Load imgae, grayscale, Gaussian blur, Otsu's threshold
 img = cv.imread(r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\1.jpg')
 img1 = cv.resize(img,None,fx=0.13,fy=0.13, interpolation = cv.INTER_CUBIC)
-dim = img.shape #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
-
+altezza, larghezza, colori = img.shape #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
+zonaqr=img[(int(altezza/4)):(int(altezza/2.5)),int((larghezza/10)):int((larghezza/3.5))]
+cv.imshow('image',zonaqr)
+qrCodeDetector = cv.QRCodeDetector()
+print(qrCodeDetector.detectAndDecode(zonaqr))
+#cv.waitKey(0)
 hsv = cv.cvtColor(img1, cv.COLOR_BGR2HSV)
-qr = cv.QRCodeDetector.detect(img,int())
-cv.imshow('image',hsv)
+qrCodeDetector = cv.QRCodeDetector()
+decodedText, points, _ = qrCodeDetector.detectAndDecode(img)
+print('Il contenuto del qr è:'+ decodedText)
+#cv.imshow('image',hsv)
 cv.waitKey(0)
 cv.destroyAllWindows()
 
