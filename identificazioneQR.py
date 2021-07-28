@@ -3,7 +3,7 @@ import numpy as np
 
 #path = r'C:\Users\chiar\OneDrive\Desktop\1.jpg'
 # Load imgae, grayscale, Gaussian blur, Otsu's threshold
-img = cv.imread(r'C:\Users\chiar\OneDrive\Desktop\progetto\1.jpg')
+img = cv.imread(r'C:\Users\chiar\OneDrive\Desktop\progetto\IdentificazioneQR\1.jpg')
 img1 = cv.resize(img,None,fx=0.13,fy=0.13, interpolation = cv.INTER_CUBIC)
 dim = img.shape #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
 
