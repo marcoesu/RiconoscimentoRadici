@@ -1,25 +1,26 @@
 import cv2 as cv
 import numpy as np
-
+from pyzbar.pyzbar import decode
 #path = r'C:\Users\chiar\OneDrive\Desktop\1.jpg'
 # Load imgae, grayscale, Gaussian blur, Otsu's threshold
 #img = cv.imread(r'C:\Users\chiar\OneDrive\Desktop\progetto\IdentificazioneQR\1.jpg')
-img = cv.imread(r'C:\Users\chiar\OneDrive\Desktop\progetto\IdentificazioneQR\1.jpg')
 
-img1 = cv.resize(img,None,fx=0.13,fy=0.13, interpolation = cv.INTER_CUBIC)
+#path = r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\1.jpg'
+img = cv.imread(r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\1.jpg')
+img_scaled = cv.resize(img,None,fx=0.13,fy=0.13, interpolation = cv.INTER_CUBIC) #da sostituire con ROI costituita dall'area che comprende solo il cartoncino blu
 altezza, larghezza, colori = img.shape #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
 zonaqr=img[(int(altezza/4)):(int(altezza/2.5)),int((larghezza/10)):int((larghezza/3.5))]
-cv.imshow('image',zonaqr)
-qrCodeDetector = cv.QRCodeDetector()
-print(qrCodeDetector.detectAndDecode(zonaqr))
-#cv.waitKey(0)
-hsv = cv.cvtColor(img1, cv.COLOR_BGR2HSV)
+for qr in decode(zonaqr):
+    codid=qr.data.decode('utf-8')    #codice identificativo estratto dal QR
+cv.imshow(str(codid),img_scaled)
+cv.waitKey(0)
+cv.destroyAllWindows()
+'''hsv = cv.cvtColor(img1, cv.COLOR_BGR2HSV)
 qrCodeDetector = cv.QRCodeDetector()
 decodedText, points, _ = qrCodeDetector.detectAndDecode(img)
 print('Il contenuto del qr è:'+ decodedText)
 #cv.imshow('image',hsv)
-cv.waitKey(0)
-cv.destroyAllWindows()
+cv.waitKey(0)'''
 
 '''original = image
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
