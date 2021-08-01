@@ -1,12 +1,11 @@
 import cv2 as cv
 import numpy as np
 from pyzbar.pyzbar import decode
-#path = r'C:\Users\chiar\OneDrive\Desktop\1.jpg'
-# Load imgae, grayscale, Gaussian blur, Otsu's threshold
-#img = cv.imread(r'C:\Users\chiar\OneDrive\Desktop\progetto\IdentificazioneQR\1.jpg')
-
-#path = r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\1.jpg'
-img = cv.imread(r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\1.jpg')
+import os
+path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
+os.chdir(path)
+print(path)
+img = cv.imread(path+r'\1.jpg')
 img_scaled = cv.resize(img,None,fx=0.13,fy=0.13, interpolation = cv.INTER_CUBIC) #da sostituire con ROI costituita dall'area che comprende solo il cartoncino blu
 altezza, larghezza, colori = img.shape #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
 zonaqr=img[(int(altezza/4)):(int(altezza/2.5)),int((larghezza/10)):int((larghezza/3.5))]
