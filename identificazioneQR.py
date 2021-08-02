@@ -7,16 +7,24 @@ os.chdir(path)
 print(path)
 cwd = os.getcwd()
 print(cwd)
-img = cv.imread(path+r'\1.jpg')
+img = cv.imread(path+r'\2.jpg')
 altezza, larghezza, colori = img.shape #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
 zonaqr=img[(int(altezza/4)):(int(altezza/2.5)),int((larghezza/10)):int((larghezza/3.5))]
 dim_scaled = (int(larghezza/altezza*1000),1000)
 for qr in pyzbar.pyzbar.decode(zonaqr):
     codid=qr.data.decode('utf-8')    #codice identificativo estratto dal QR
 img_scaled = cv.resize(img, dim_scaled, interpolation = cv.INTER_AREA) #da sostituire con ROI costituita dall'area che comprende solo il cartoncino blu
-cv.imshow(str(codid),img_scaled)
+cv.imshow(str(codid),zonaqr)
 cv.waitKey(0)
 cv.destroyAllWindows()
+
+
+
+
+
+
+
+
 '''hsv = cv.cvtColor(img1, cv.COLOR_BGR2HSV)
 qrCodeDetector = cv.QRCodeDetector()
 decodedText, points, _ = qrCodeDetector.detectAndDecode(img)
