@@ -1,16 +1,19 @@
 import cv2 as cv
 import numpy as np
-from pyzbar.pyzbar import decode
+import pyzbar.pyzbar
 import os
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)
 print(path)
+cwd = os.getcwd()
+print(cwd)
 img = cv.imread(path+r'\1.jpg')
-img_scaled = cv.resize(img,None,fx=0.13,fy=0.13, interpolation = cv.INTER_CUBIC) #da sostituire con ROI costituita dall'area che comprende solo il cartoncino blu
 altezza, larghezza, colori = img.shape #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
 zonaqr=img[(int(altezza/4)):(int(altezza/2.5)),int((larghezza/10)):int((larghezza/3.5))]
-for qr in decode(zonaqr):
+dim_scaled = (int(larghezza/altezza*1000),1000)
+for qr in pyzbar.pyzbar.decode(zonaqr):
     codid=qr.data.decode('utf-8')    #codice identificativo estratto dal QR
+img_scaled = cv.resize(img, dim_scaled, interpolation = cv.INTER_AREA) #da sostituire con ROI costituita dall'area che comprende solo il cartoncino blu
 cv.imshow(str(codid),img_scaled)
 cv.waitKey(0)
 cv.destroyAllWindows()
