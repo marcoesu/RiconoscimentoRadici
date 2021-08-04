@@ -4,8 +4,26 @@ from pyzbar.pyzbar import decode #decodifica del QR
 import os # utilizzata per effettuare operazioni sulle cartelle
 import glob
 import shutil #permette di effettuare operazioni su file
+
+import requests #pip install requests
+import zipfile
+
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
+url ='https://www.dropbox.com/s/2lourrj1s3wck3q/FotoCampione.zip?dl=1' # File .zip contenente le immagini campione, salvato su DropBox 
+FotoCampione = requests.get(url)
+with open('FotoCampione.zip', 'wb') as local_file:                #Salvataggio su disco, nella cartella path, del file .zip
+    local_file.write(FotoCampione.content)
+
+# Processo di estrazione delle immagini
+zip = "FotoCampione.zip"
+try:
+    with zipfile.ZipFile(zip) as z:
+        z.extractall()
+        print("Immagini campione estratte.")
+except:
+    print("File non valido.")
+
 data_path = os.path.join(path,'*.jpg') #lista di tutti gli elementi di estensione jpg nella cartella path
 files = glob.glob(data_path) #converte data path in un output Unix-like (ls) (*.jpg -> lista di elementi con estensione jpg)
 
@@ -22,6 +40,9 @@ for f1 in files: # ciclo che scorre le immagini nella cartella path
         if not os.path.exists(path+r'/'+codid):     # controlla che esista la sottocartella dedicata al soggetto in analisi
             os.makedirs(path+r'/'+codid)            #crea la cartella dedicata
         shutil.move(f1,str(os.path.dirname(f1) + r'/' + codid + r'/' + os.path.basename(f1)))   #sposta il file jpg dalla cartella path alla sottocartella del rispettivo soggetto
+
+
+
 
 
 #    img_scaled = cv.resize(image, dim_scaled, interpolation = cv.INTER_AREA) #da sostituire con ROI costituita dall'area che comprende solo il cartoncino blu
