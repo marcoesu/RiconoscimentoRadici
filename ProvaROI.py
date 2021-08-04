@@ -28,12 +28,11 @@ for pino in scansione:
             image = cv.imread(f1)
             altezza, larghezza, colori = image.shape
             dim_scaled = (int(larghezza/altezza*800),800)
-            #img_scaled = cv.resize(image, dim_scaled, interpolation = cv.INTER_AREA)
-            img_to_zero = cv.cvtColor(image, cv.THRESH_TOZERO_INV)
-            img_hsv = cv.cvtColor(image, cv.COLOR_BGR2HSV)      #Truncated viene meglio
-            lower_range = np.array([20,15,60])
-            upper_range = np.array([120,70,250])
-            img_scaled = cv.resize(img_hsv, dim_scaled, interpolation = cv.INTER_AREA)
+            #img_to_zero = cv.cvtColor(image, cv.THRESH_TOZERO)     #la radice assume una colorazione tendente al celeste
+            img_hsv = cv.cvtColor(image, cv.COLOR_BGR2HSV)          #Utilizzando invece TRUNC l'immagine assume una colorazione leggermente più scura di THRESH_TO_ZERO
+            lower_range = np.array([20,15,60])                      #Utilizzando la conversione in HSV in combinazione con la maschera otteniamo buona parte delle radici
+            upper_range = np.array([120,70,250])                    #I limiti della maschera
+            img_scaled = cv.resize(img_hsv, dim_scaled, interpolation = cv.INTER_AREA)     #L'immagine viene scalata per essere visibile completamente a schermo
             #ret,thresh1 = cv.threshold(img_scaled,110,250,cv.THRESH_BINARY)
             mask = cv.inRange(img_scaled, lower_range, upper_range)
             #mask_scaled = cv.resize(mask, dim_scaled, interpolation = cv.INTER_AREA)
@@ -41,20 +40,6 @@ for pino in scansione:
             cv.imshow('to zero', img_scaled)
             #cv.imwrite(str(pippo +'_HSV.jpg'), img_trunc)
 
-
             cv.waitKey(3000)
 
         cv.destroyAllWindows()
-
-
-#print("Files and Directories in '% s':" % path)
-#scansione = os.scandir()
-#print(scansione)
-#for pino in scansione:
-#    print(pino.name)
-#    if pino.name == 'SBP_140_R3':
-#        os.chdir(r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\SBP_140_R3')
-#        print(os.getcwd)
- #       img = cv.imread('DSC00406.JPG')
- #       cv.imshow('pino', img)
- #       cv.waitKey(0)   '''
