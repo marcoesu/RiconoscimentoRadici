@@ -37,7 +37,7 @@ for sottocartella in scansione:
             img_scaled = cv.resize(img_scaledo, dim_scaled, interpolation = cv.INTER_AREA)
 
 
-            img_hsv= cv.cvtColor(img_scaled, cv.COLOR_BGR2HSV)
+            img_hsv= cv.cvtColor(img_scaledo, cv.COLOR_BGR2HSV)
             
             #lower_range = np.array([20,15,60])                      #Utilizzando la conversione in HSV in combinazione con la maschera otteniamo buona parte delle radici
             #upper_range = np.array([120,70,250])                    #I limiti della maschera
@@ -60,11 +60,14 @@ for sottocartella in scansione:
             contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
             c = max(contours, key=cv.contourArea)
             x, y, w, h = cv.boundingRect(c)
-            #print(x,y,w,h)
-            prova = img_hsv[y:y+h,x:x+w, :]
+            #m_larghezza = 50
+            #m_altezza = 40 #non utilizzato perché rovina la maggior parte dei risultati per migliorarne pochi
+
+            #prova = img_hsv[y-margine:y+h+margine,x-margine:x+w+margine, :]
+            #prova = img_scaledo[y-m_altezza:y+h,x-m_larghezza:x+w+m_larghezza, :]
+            prova = img_scaledo[y:y+h,x:x+w, :]
             #contours, hierarchy = cv.findContours(thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         
-
             #mask = cv.inRange(img_scaled, lower_range, upper_range)
             #mask_scaled = cv.resize(mask, dim_scaled, interpolation = cv.INTER_AREA)
             #cv.imshow('hsv', mask)
@@ -74,13 +77,13 @@ for sottocartella in scansione:
                 # Mark triangle with blue line
                     cv.drawContours(img_hsv, [c], -1, (255, 0, 0), 2)
 
-            cv.imshow('prova', mask)
-            cv.imshow('to zero', prova)
-            #cv.imwrite(str(nomefile +'_HSV.jpg'), img_hsv)
+            #cv.imshow('prova', mask)
+            #cv.imshow('to zero', prova)
+            cv.imwrite(str(nomefile +'_area.png'), prova)
 
 
         # https://docs.opencv.org/master/dd/d49/tutorial_py_contour_features.html
 
-            cv.waitKey(3000)
+            #cv.waitKey(3000)
 
-        cv.destroyAllWindows()
+        #cv.destroyAllWindows()
