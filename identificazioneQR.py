@@ -10,7 +10,7 @@ import zipfile
 def PresenzaCampioni(path,url):     # Funzione adibita al controllo della presenza del file contenente le immagini campione
 
     if(os.path.exists(str(path + r'/FotoCampione.zip'))):
-        print("Campioni presenti")
+        print("Campioni presenti.")
     else:
         try:
             print("Download dei campioni in corso...")

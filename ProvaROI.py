@@ -8,78 +8,57 @@ import shutil #permette di effettuare operazioni su file
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
 
-scanpath = os.scandir()
- 
-print('Files and Directories in ' + path)
-scansione = os.scandir()
-print(scansione)
-for sottocartella in scansione:
-    if sottocartella.is_dir()== True:
+scansione = os.scandir() #scansione dei file all'interno della cartella path
+for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path 
+    if sottocartella.is_dir():  #controllo se il file in esame è una cartella
         subpath = str(path + r'/'+ sottocartella.name)
-        os.chdir(subpath)
+        os.chdir(subpath)   # passaggio alla sottocartella in esame
         scansubdir = os.scandir()
         data_path = os.path.join(subpath,'*.jpg')
-        files = glob.glob(data_path) #converte data path in un output Unix-like (ls) (*.jpg -> lista di elementi con estensione jpg)
-        #print(files)
-        #Ciclo per scorrere tutte le immagini delle sottocartelle 
-        for f1 in files:
-            nomefile = os.path.basename(f1)
-            image = cv.imread(f1)
-            altezza, larghezza, colori = image.shape    
-            #dim_scaled = (int(larghezza/altezza*800),800)           # Immagine rimpicciolita per comodità. Le immagini originali sono 6000x4000.
-            #img_scaled = cv.resize(image, dim_scaled, interpolation = cv.INTER_AREA)
-            #img_to_zero = cv.cvtColor(image, cv.THRESH_TOZERO)     #la radice assume una colorazione tendente al celeste
-            
-            img_scaledo = image[(int(altezza/4)):(int(altezza)),int((larghezza/9)):int((larghezza))] 
+        files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*.jpg -> lista di elementi con estensione jpg)
+        for f1 in files:    #Ciclo per scorrere tutte le immagini delle sottocartelle 
+            nomefile = os.path.basename(f1)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
+            nomefile,ext = os.path.splitext(nomefile) #rimozione dell'estensione ".JPG" dal nome del file
+            image = cv.imread(f1)   #lettura dell'immagine dal disco
+            altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
+            img_focus = image[(int(altezza/4)):(int(altezza)),int((larghezza/9)):int((larghezza))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
+            altezza, larghezza = img_focus.shape[:2]    # dimensioni dell'immagine leggermente ritagliata
 
-            altezza, larghezza, colori = img_scaledo.shape    
-            dim_scaled = (int(larghezza/altezza*800),800)           # Immagine rimpicciolita per comodità. Le immagini originali sono 6000x4000.
-            img_scaled = cv.resize(img_scaledo, dim_scaled, interpolation = cv.INTER_AREA)
+            img_hsv = cv.cvtColor(img_focus, cv.COLOR_BGR2HSV) #conversione da BGR (Blu, Verde, Rosso) ad HSV
+            #Hue Saturation Brightness (HSB), in inglese "tonalità, saturazione e luminosità", indica sia un metodo additivo di composizione dei colori,
+            # sia un modo per rappresentarli in un sistema digitale. Viene anche chiamato HSV da Hue Saturation Value (tonalità, saturazione e valore).
+                        
+            #Range per selezionare il colore verde con la maschera
+            lower_green = np.array([30, 80, 30])          
+            upper_green = np.array([150,255,150])                       
+            mask = cv.inRange(img_hsv, lower_green, upper_green) # Applicazione della maschera
 
+            #Ricerca dei contorni utlizzando la maschera
+            ret, thresh = cv.threshold(mask, 127, 255, cv.THRESH_BINARY) # necessita di un'immagine in scala di grigi che viene convertita in un'immagine binaria
+            contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE) #Ricerca dei contorni utlizzando le informazioni ottenute attraverso il tresholding
+            c = max(contours, key=cv.contourArea)   #Ricerca del più grande contorno nell'immagine utilizzando come parametro di giudizio l'area del contorno
+            x, y, w, h = cv.boundingRect(c) #Restituisce le coordinate dell'area che contiene il contorno 
+                                            #(le coordinate di un rettangolo, più precisamente le coordinate del vertice sinistro superiore e le dimensioni del rettangolo)
 
-            img_hsv= cv.cvtColor(img_scaledo, cv.COLOR_BGR2HSV)
-            
-            #lower_range = np.array([20,15,60])                      #Utilizzando la conversione in HSV in combinazione con la maschera otteniamo buona parte delle radici
-            #upper_range = np.array([120,70,250])                    #I limiti della maschera
-            #lower_range = np.array([20, 20, 50], dtype=np.uint8)
-            #upper_range = np.array([50,255,255], dtype=np.uint8)                    #I limiti della maschera, colore rosso (HSV)
-            
-            lower_green = np.array([30, 80, 30], dtype=np.uint8)            #range per il colore verde
-            upper_green = np.array([150,255,150], dtype=np.uint8)
-            
-            #lower_green = np.array([57, 63, 100], dtype=np.uint8)            #range per il colore verde
-            #upper_green = np.array([53,38,52], dtype=np.uint8)           #per evidenziare il cartoncino blu (nell'immagine convertita in hsv è verde)
-            
-            mask = cv.inRange(img_hsv, lower_green, upper_green)
-            img_gray = cv.cvtColor(img_scaled, cv.COLOR_BGR2GRAY)          #Utilizzando invece TRUNC l'immagine assume una colorazione leggermente più scura di THRESH_TO_ZERO
-
-            #L'immagine viene scalata per essere visibile completamente a schermo
-            #ret,thresh1 = cv.threshold(img_scaled,110,250,cv.THRESH_BINARY)
-            #imgray = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
-            ret, thresh = cv.threshold(mask, 127, 255, cv.THRESH_BINARY)
-            contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
-            c = max(contours, key=cv.contourArea)
-            x, y, w, h = cv.boundingRect(c)
-            #m_larghezza = 50
-            #m_altezza = 40 #non utilizzato perché rovina la maggior parte dei risultati per migliorarne pochi
-
-            #prova = img_hsv[y-margine:y+h+margine,x-margine:x+w+margine, :]
-            #prova = img_scaledo[y-m_altezza:y+h,x-m_larghezza:x+w+m_larghezza, :]
-            prova = img_scaledo[y:y+h,x:x+w, :]
-            #contours, hierarchy = cv.findContours(thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        
-            #mask = cv.inRange(img_scaled, lower_range, upper_range)
-            #mask_scaled = cv.resize(mask, dim_scaled, interpolation = cv.INTER_AREA)
-            #cv.imshow('hsv', mask)
-            #cv.drawContours(img_hsv, contours, -1, (0,255,0), 2)
+            cartoncino = img_focus[y:y+h,x:x+w,:] #Ritaglio del cartoncino
+            #img_hsv_contorno = img_hsv.copy()   #Copia dell'immagine in HSV per poi applicare il contorno alla copia
+            cartoncino_hsv = cv.cvtColor(cartoncino, cv.COLOR_BGR2HSV)   #Copia dell'immagine in HSV per poi applicare il contorno alla copia
             for c in contours:
                 if cv.contourArea(c) > 1000:  #  Ignore very small contours
                 # Mark triangle with blue line
-                    cv.drawContours(img_hsv, [c], -1, (255, 0, 0), 2)
+                    cv.drawContours(img_hsv, [c], -1, (255, 255, 255), 2)
 
-            #cv.imshow('prova', mask)
-            #cv.imshow('to zero', prova)
-            cv.imwrite(str(nomefile +'_area.png'), prova)
+          
+            mask_inv = cv.bitwise_not(mask)
+            mask_inv = mask_inv[y:y+h,x:x+w]
+            radici = cv.bitwise_and(cartoncino, cartoncino, mask= mask_inv)
+            cv.imwrite(str(nomefile +'_focus.png'), img_focus)
+            cv.imwrite(str(nomefile +'_hsv.png'), img_hsv)
+            cv.imwrite(str(nomefile +'_radici.png'), radici)
+            cv.imwrite(str(nomefile +'_cartoncino_hsv.png'), cartoncino_hsv)
+            cv.imwrite(str(nomefile +'_maschera.png'), mask)
+            cv.imwrite(str(nomefile +'_maschera_invertita.png'), mask_inv)    
+            cv.imwrite(str(nomefile +'_cartoncino.png'), cartoncino)
 
 
         # https://docs.opencv.org/master/dd/d49/tutorial_py_contour_features.html
