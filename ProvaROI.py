@@ -43,15 +43,15 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             cartoncino = img_focus[y:y+h,x:x+w,:] #Ritaglio del cartoncino
             #img_hsv_contorno = img_hsv.copy()   #Copia dell'immagine in HSV per poi applicare il contorno alla copia
             cartoncino_hsv = cv.cvtColor(cartoncino, cv.COLOR_BGR2HSV)   #Copia dell'immagine in HSV per poi applicare il contorno alla copia
-            for c in contours:
-                if cv.contourArea(c) > 1000:  #  Ignore very small contours
-                # Mark triangle with blue line
-                    cv.drawContours(img_hsv, [c], -1, (255, 255, 255), 2)
+            for c in contours:  #ciclo per disegnare i contorni
+                if cv.contourArea(c) > 2000:  # Ignora i contorni più piccoli
+                    cv.drawContours(img_hsv, [c], -1, (255, 255, 255), 2)   #disegno dei contorni sull'immagine in HSV
 
           
-            mask_inv = cv.bitwise_not(mask)
-            mask_inv = mask_inv[y:y+h,x:x+w]
-            radici = cv.bitwise_and(cartoncino, cartoncino, mask= mask_inv)
+            mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per trovare le radici
+            mask_inv = mask_inv[y:y+h,x:x+w]    # Ritaglio della maschera alle dimensioni del cartoncino
+            radici = cv.bitwise_and(cartoncino, cartoncino, mask= mask_inv) # Generazione dell'immagine ottenuta prendendo solo le parti in comune di cartoncino e maschera invertita
+            # Salvataggio delle immagini elaborate su disco
             cv.imwrite(str(nomefile +'_focus.png'), img_focus)
             cv.imwrite(str(nomefile +'_hsv.png'), img_hsv)
             cv.imwrite(str(nomefile +'_radici.png'), radici)
@@ -60,9 +60,10 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             cv.imwrite(str(nomefile +'_maschera_invertita.png'), mask_inv)    
             cv.imwrite(str(nomefile +'_cartoncino.png'), cartoncino)
 
+    # https://docs.opencv.org/master/dd/d49/tutorial_py_contour_features.html
 
-        # https://docs.opencv.org/master/dd/d49/tutorial_py_contour_features.html
 
-            #cv.waitKey(3000)
+    #        cv.imshow('Immagine', cartoncino)
+    #        cv.waitKey(1500)
 
-        #cv.destroyAllWindows()
+    #    cv.destroyAllWindows()
