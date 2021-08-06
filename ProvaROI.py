@@ -14,7 +14,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
         subpath = str(path + r'/'+ sottocartella.name)
         os.chdir(subpath)   # passaggio alla sottocartella in esame
         scansubdir = os.scandir()
-        data_path = os.path.join(subpath,'*.jpg')
+        data_path = os.path.join(subpath,'*.jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
+                                                    # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da un precedente avvio del programma
+                                                    # non vengono utilizzati come input dal programma.                                                    
         files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*.jpg -> lista di elementi con estensione jpg)
         for f1 in files:    #Ciclo per scorrere tutte le immagini delle sottocartelle 
             nomefile = os.path.basename(f1)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
@@ -37,6 +39,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             ret, thresh = cv.threshold(mask, 127, 255, cv.THRESH_BINARY) # necessita di un'immagine in scala di grigi che viene convertita in un'immagine binaria
             contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE) #Ricerca dei contorni utlizzando le informazioni ottenute attraverso il tresholding
             c = max(contours, key=cv.contourArea)   #Ricerca del più grande contorno nell'immagine utilizzando come parametro di giudizio l'area del contorno
+
             x, y, w, h = cv.boundingRect(c) #Restituisce le coordinate dell'area che contiene il contorno 
                                             #(le coordinate di un rettangolo, più precisamente le coordinate del vertice sinistro superiore e le dimensioni del rettangolo)
 
@@ -44,13 +47,17 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             #img_hsv_contorno = img_hsv.copy()   #Copia dell'immagine in HSV per poi applicare il contorno alla copia
             cartoncino_hsv = cv.cvtColor(cartoncino, cv.COLOR_BGR2HSV)   #Copia dell'immagine in HSV per poi applicare il contorno alla copia
             for c in contours:  #ciclo per disegnare i contorni
-                if cv.contourArea(c) > 2000:  # Ignora i contorni più piccoli
+                if cv.arcLength(c, True) > 5000:  # Ignora i contorni più piccoli
+                #if cv.contourArea(c) > 2000:  # Ignora i contorni più piccoli
                     cv.drawContours(img_hsv, [c], -1, (255, 255, 255), 2)   #disegno dei contorni sull'immagine in HSV
 
           
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per trovare le radici
             mask_inv = mask_inv[y:y+h,x:x+w]    # Ritaglio della maschera alle dimensioni del cartoncino
-            radici = cv.bitwise_and(cartoncino, cartoncino, mask= mask_inv) # Generazione dell'immagine ottenuta prendendo solo le parti in comune di cartoncino e maschera invertita
+            
+            # Generazione dell'immagine ottenuta prendendo solo le parti in comune di cartoncino e maschera invertita
+            radici = cv.bitwise_and(cartoncino, cartoncino, mask= mask_inv) 
+            
             # Salvataggio delle immagini elaborate su disco
             cv.imwrite(str(nomefile +'_focus.png'), img_focus)
             cv.imwrite(str(nomefile +'_hsv.png'), img_hsv)
