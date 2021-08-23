@@ -60,6 +60,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             # Generazione dell'immagine ottenuta prendendo solo le parti in comune di cartoncino e maschera invertita
             radici = cv.bitwise_and(cartoncino, cartoncino, mask= mask_inv) 
+
+            #utilizzo dell'immagine bitwise per l'adaptiveThreshold 
+            radici_gray = cv.cvtColor(radici, cv.COLOR_BGR2GRAY) #conversione dell'immagine radici in scala di grigi
+            # Applicazione del Thresholding adattivo (Gaussian)
+            ThresholdAdattivoBitwise = cv.adaptiveThreshold(radici_gray,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY,11,2)
+        
             
             # Salvataggio delle immagini elaborate su disco
             cv.imwrite(str(nomefile +'_focus.jpg'), img_focus)
@@ -69,6 +75,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             cv.imwrite(str(nomefile +'_maschera.jpg'), mask)
             cv.imwrite(str(nomefile +'_maschera_invertita.jpg'), mask_inv)
             cv.imwrite(str(nomefile +'_ThresholdAdattivo.jpg'), ThresholdAdattivo)
+            cv.imwrite(str(nomefile +'_ThresholdAdattivoBitwise.jpg'), ThresholdAdattivoBitwise)
             cv.imwrite(str(nomefile +'_cartoncino.jpg'), cartoncino)
 
     #        cv.imshow('Immagine', cartoncino)
