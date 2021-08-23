@@ -14,7 +14,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
         subpath = str(path + r'/'+ sottocartella.name)
         os.chdir(subpath)   # passaggio alla sottocartella in esame
         scansubdir = os.scandir()
-        data_path = os.path.join(subpath,'*.jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
+        data_path = os.path.join(subpath,'*[0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
                                                     # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da un precedente avvio del programma
                                                     # non vengono utilizzati come input dal programma.                                                    
         files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*.jpg -> lista di elementi con estensione jpg)
@@ -53,22 +53,23 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
           
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per trovare le radici
-            mask_inv = mask_inv[y:y+h,x:x+w]    # Ritaglio della maschera alle dimensioni del cartoncino
-            
+            mask_inv = mask_inv[y:y+h,x:x+w]    # Ritaglio della maschera alle dimensioni del cartoncino            
+            #mask_inv = cv.medianBlur(mask_inv,5) #meglio 3
+            # Applicazione del Thresholding adattivo (Gaussian)
+            ThresholdAdattivo = cv.adaptiveThreshold(mask_inv,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY,11,2)
+
             # Generazione dell'immagine ottenuta prendendo solo le parti in comune di cartoncino e maschera invertita
             radici = cv.bitwise_and(cartoncino, cartoncino, mask= mask_inv) 
             
             # Salvataggio delle immagini elaborate su disco
-            cv.imwrite(str(nomefile +'_focus.png'), img_focus)
-            cv.imwrite(str(nomefile +'_hsv.png'), img_hsv)
-            cv.imwrite(str(nomefile +'_radici.png'), radici)
-            cv.imwrite(str(nomefile +'_cartoncino_hsv.png'), cartoncino_hsv)
-            cv.imwrite(str(nomefile +'_maschera.png'), mask)
-            cv.imwrite(str(nomefile +'_maschera_invertita.png'), mask_inv)    
-            cv.imwrite(str(nomefile +'_cartoncino.png'), cartoncino)
-
-    # https://docs.opencv.org/master/dd/d49/tutorial_py_contour_features.html
-
+            cv.imwrite(str(nomefile +'_focus.jpg'), img_focus)
+            cv.imwrite(str(nomefile +'_hsv.jpg'), img_hsv)
+            cv.imwrite(str(nomefile +'_radici.jpg'), radici)
+            cv.imwrite(str(nomefile +'_cartoncino_hsv.jpg'), cartoncino_hsv)
+            cv.imwrite(str(nomefile +'_maschera.jpg'), mask)
+            cv.imwrite(str(nomefile +'_maschera_invertita.jpg'), mask_inv)
+            cv.imwrite(str(nomefile +'_ThresholdAdattivo.jpg'), ThresholdAdattivo)
+            cv.imwrite(str(nomefile +'_cartoncino.jpg'), cartoncino)
 
     #        cv.imshow('Immagine', cartoncino)
     #        cv.waitKey(1500)
