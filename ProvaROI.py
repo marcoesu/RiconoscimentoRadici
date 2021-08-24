@@ -80,6 +80,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
     #        cv.imshow('Immagine', cartoncino)
     #        cv.waitKey(1500)
+
+            #stampa nel terminale del file in esame
             print(str('File '+nomefile+' scansionato.'))
     #    cv.destroyAllWindows()
+
+        #stampa nel terminale della cartella in esame
         print(str('Cartella '+sottocartella.name+' scansionata.'))
+
+print(str('Processo terminato'))       
