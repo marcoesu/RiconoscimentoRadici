@@ -17,7 +17,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
         data_path = os.path.join(subpath,'*[0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
                                                     # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da un precedente avvio del programma
                                                     # non vengono utilizzati come input dal programma.                                                    
-        files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*.jpg -> lista di elementi con estensione jpg)
+        files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*[0-9].jpg -> lista di elementi con estensione jpg che hanno una cifra come ultimo carattere del nome)
         for f1 in files:    #Ciclo per scorrere tutte le immagini delle sottocartelle 
             nomefile = os.path.basename(f1)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
             nomefile,ext = os.path.splitext(nomefile) #rimozione dell'estensione ".JPG" dal nome del file
@@ -44,18 +44,18 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                                             #(le coordinate di un rettangolo, più precisamente le coordinate del vertice sinistro superiore e le dimensioni del rettangolo)
 
             cartoncino = img_focus[y:y+h,x:x+w,:] #Ritaglio del cartoncino
-            #img_hsv_contorno = img_hsv.copy()   #Copia dell'immagine in HSV per poi applicare il contorno alla copia
-            cartoncino_hsv = cv.cvtColor(cartoncino, cv.COLOR_BGR2HSV)   #Copia dell'immagine in HSV per poi applicare il contorno alla copia
+            cartoncino_hsv = cv.cvtColor(cartoncino, cv.COLOR_BGR2HSV)   #Conversione di cartoncino in HSV
             for c in contours:  #ciclo per disegnare i contorni
                 if cv.arcLength(c, True) > 5000:  # Ignora i contorni più piccoli
-                #if cv.contourArea(c) > 2000:  # Ignora i contorni più piccoli
-                    cv.drawContours(img_hsv, [c], -1, (255, 255, 255), 2)   #disegno dei contorni sull'immagine in HSV
+                #if cv.contourArea(c) > 2000:  # Ignora i contorni più piccoli (non utilizzato perché restituiva altri contorni non rilevanti)
+                    cv.drawContours(img_hsv, [c], -1, (255, 255, 255), 2)   #disegno dei contorni sull'immagine in HSV (colore bianco)
 
           
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per trovare le radici
-            mask_inv = mask_inv[y:y+h,x:x+w]    # Ritaglio della maschera alle dimensioni del cartoncino            
-            #mask_inv = cv.medianBlur(mask_inv,5) #meglio 3
+            mask_inv = mask_inv[y:y+h,x:x+w]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
+
             # Applicazione del Thresholding adattivo (Gaussian)
+            #mask_inv = cv.medianBlur(mask_inv,5) #meglio 3
             ThresholdAdattivo = cv.adaptiveThreshold(mask_inv,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY,11,2)
 
             # Generazione dell'immagine ottenuta prendendo solo le parti in comune di cartoncino e maschera invertita
