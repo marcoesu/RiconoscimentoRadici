@@ -18,7 +18,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
         subpath = str(path + r'/'+ sottocartella.name)
         os.chdir(subpath)   # passaggio alla sottocartella in esame
         scansubdir = os.scandir()
-        data_path = os.path.join(subpath,'*[0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
+        data_path = os.path.join(subpath,'*[0-9][0-9][0-9][0-9][0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
                                                     # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da un precedente avvio del programma
                                                     # non vengono utilizzati come input dal programma.                                                    
         files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*[0-9].jpg -> lista di elementi con estensione jpg che hanno una cifra come ultimo carattere del nome)
@@ -27,9 +27,18 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             image = cv.imread(f1)   #lettura dell'immagine dal disco
             with open(nomefile, 'rb') as fh:
                 tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal")
-                dt = str(tags['EXIF DateTimeOriginal']) 
+                DataScatto = str(tags['EXIF DateTimeOriginal'])
+                anno, mese, giornoora, minuti, secondi = DataScatto.split(":", 5)
+                giorno, ora = giornoora.split(" ",1)
+                '''
                 #dt = tags.get('DateTimeOriginal', 'Not available')
-                day, dtime = dt.split(" ", 1)
-                hour, minute, second = dtime.split(":", 2)
-                nomefile,ext = os.path.splitext(nomefile)    
-                cv.imwrite(str(nomefile+'_'+dt+'.jpg'), image)
+                data, orario = DataScatto.split(" ", 1)
+                print(data)
+                print(orario)
+                hour, minute, second = orario.split(":", 2)
+                print(hour)
+                nomefile,ext = os.path.splitext(nomefile)'''
+                cv.imwrite(str(path + r'/' + sottocartella.name + r'/' + sottocartella.name+"_"+anno+"-"+mese+"-"+giorno+"_"+ora+"-"+minuti+"-"+secondi+'.jpg'),image)
+                fh.close()
+                os.remove(os.path.abspath(f1))
+                
