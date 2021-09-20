@@ -77,13 +77,15 @@ for f1 in files: # ciclo che scorre le immagini nella cartella path
     for qrsx in decode(zonaqrsx):  #ciclo for utilizzato per decodificare il QR di ogni immagine
         codid=qrsx.data.decode('utf-8')    #codice identificativo estratto dal QR
         Archiviazione(path,f1,codid)
-        print("Esecuzione decod. su QR a sinistra per "+ str(os.path.basename(f1)))
-    for qrdx in decode(zonaqrdx):   #ciclo for utilizzato per decodificare il QR di ogni immagine
-        codid=qrdx.data.decode('utf-8')    #codice identificativo estratto dal QR
-        Archiviazione(path,f1,codid)
-        print("Esecuzione decod. su QR a destra per "+ str(os.path.basename(f1)))
-    cv.imwrite(str(os.path.basename(f1)+'qrsx.jpg'), zonaqrsx)
-    cv.imwrite(str(os.path.basename(f1)+'qrdx.jpg'), zonaqrdx)
+        print("Decodifica riuscita: QR a sinistra per "+ str(os.path.basename(f1)))
+    if os.path.exists(f1):
+        for qrdx in decode(zonaqrdx):   #ciclo for utilizzato per decodificare il QR di ogni immagine
+            codid=qrdx.data.decode('utf-8')    #codice identificativo estratto dal QR
+            Archiviazione(path,f1,codid)
+            print("Decodifica riuscita: QR a destra per "+ str(os.path.basename(f1)))
+    if os.path.exists(f1):
+       cv.imwrite(str(os.path.basename(f1)+'qrsx.jpg'), zonaqrsx)
+       cv.imwrite(str(os.path.basename(f1)+'qrdx.jpg'), zonaqrdx)
 
 
 
@@ -101,5 +103,5 @@ for f1 in files: # ciclo che scorre le immagini nella cartella path
         if not os.path.exists(path+r'/'+codid):     # controlla che esista la sottocartella dedicata al soggetto in analisi
             os.makedirs(path+r'/'+codid)            #crea la cartella dedicata
             print(str('Cartella '+codid+' creata.'))
-        shutil.move(f1,str(os.path.dirname(f1) + r'/' + codid + r'/' + os.path.basename(f1)))'''   #sposta il file jpg dalla cartella path alla sottocartella del rispettivo soggetto'''
+        shutil.move(f1,str(os.path.dirname(f1) + r'/' + codid + r'/' + os.path.basename(f1)))'''   #sposta il file jpg dalla cartella path alla sottocartella del rispettivo soggetto
 print("Processo terminato.")      
