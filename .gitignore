@@ -1,5 +1,5 @@
 desktop.ini
 FotoCampione.zip
-FotoCampione1.zip
-/*
+FotoCampione*.zip
+/[A-Z]_*
 *.jpg

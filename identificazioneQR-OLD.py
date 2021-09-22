@@ -6,7 +6,6 @@ import glob
 import shutil #permette di effettuare operazioni su file
 import requests #pip install requests
 import zipfile
-import exifread
 
 def PresenzaCampioni(path,url):     # Funzione adibita al controllo della presenza del file contenente le immagini campione
 
@@ -33,19 +32,12 @@ def EstrazioneCampioni():   # Funzione che si occupa dell'estrazione delle immag
     except:
         print("File non valido.")
 
-def Archiviazione(path,file,immagine,codice): #Spostamento file campione nella sottocartella dedicata
+def Archiviazione(path,file,codice): #Spostamento file campione nella sottocartella dedicata
     if not os.path.exists(path+r'/'+codice):     # controlla che esista la sottocartella dedicata al soggetto in analisi
             os.makedirs(path+r'/'+codice)            #crea la cartella dedicata
             print(str('Cartella '+codice +' creata.'))
-    nomefile = os.path.basename(file)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
-    with open(nomefile, 'rb') as fh:
-        tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal")
-        DataScatto = str(tags['EXIF DateTimeOriginal'])
-        anno, mese, giornoora, minuti, secondi = DataScatto.split(":", 5)
-        giorno, ora = giornoora.split(" ",1)
-        fh.close()
-    shutil.move(file,str(path + r'/' + codice + r'/' + codice +' '+anno+'-'+mese+'-'+giorno+' '+ora+'-'+minuti+'-'+secondi+'.jpg')) 
-    #sposta il file jpg dalla cartella path alla sottocartella del rispettivo soggetto, rinominandolo utilizzando il codice del soggetto estratto dal QR, la data e l'ora
+    shutil.move(file,str(os.path.dirname(file) + r'/' + codice + r'/' + os.path.basename(file)))
+
 
 path = os.path.abspath(os.path.dirname(__file__)) #Salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  # Cambio della cartella attuale nella cartella in cui si trova il file .py
@@ -84,12 +76,12 @@ for f1 in files: # ciclo che scorre le immagini nella cartella path
                 else: cv.imwrite(str(os.path.basename(f1)+'qrdx.jpg'), zonaqrdx)'''
     for qrsx in decode(zonaqrsx):  #ciclo for utilizzato per decodificare il QR di ogni immagine
         codid=qrsx.data.decode('utf-8')    #codice identificativo estratto dal QR
-        Archiviazione(path,f1,image,codid)
+        Archiviazione(path,f1,codid)
         print("Decodifica riuscita: QR a sinistra per "+ str(os.path.basename(f1)))
     if os.path.exists(f1):
         for qrdx in decode(zonaqrdx):   #ciclo for utilizzato per decodificare il QR di ogni immagine
             codid=qrdx.data.decode('utf-8')    #codice identificativo estratto dal QR
-            Archiviazione(path,f1,image,codid)
+            Archiviazione(path,f1,codid)
             print("Decodifica riuscita: QR a destra per "+ str(os.path.basename(f1)))
     if os.path.exists(f1):
        cv.imwrite(str(os.path.basename(f1)+'qrsx.jpg'), zonaqrsx)
