@@ -1,8 +1,10 @@
 import numpy as np
 import cv2 as cv
 import glob
- #interior number of corners
-img = cv.imread(r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\a.jpg')
+import os
+path = os.path.abspath(os.path.dirname(__file__)) #Salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
+os.chdir(path)  # Cambio della cartella attuale nella cartella in cui si trova il file .py
+img = cv.imread(r'a.jpg')
 hsv=cv.cvtColor(img, cv.COLOR_BGR2HSV)
 #aaa, thresh = cv.threshold(gray, 200, 255, cv.THRESH_BINARY)
 #CALIB_CB_FAST_CHECK saves a lot of time on images
@@ -33,7 +35,7 @@ print(corners)
 cv.imwrite(r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\ciaoo.jpg', scacchiera)
 #cv.waitKey(2000)
 if(ret==True):
-    corners2 = cv.cornerSubPix(pino,corners, (1,1), (-1,-1), (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001))
+    corners2 = cv.cornerSubPix(pino,corners, (1,1), (-1,-1), (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 60, 0.001))
     cv.drawChessboardCorners(img, (2,1), corners2, ret)
     print("ciao")
     cv.imwrite(str(r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\b.jpg'+'exit.jpg'), img)
