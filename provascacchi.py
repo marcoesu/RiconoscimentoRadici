@@ -6,6 +6,7 @@ import math
 path = os.path.abspath(os.path.dirname(__file__)) #Salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  # Cambio della cartella attuale nella cartella in cui si trova il file .py
 img = cv.imread(r'a.jpg')
+img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 altezza, larghezza = img.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
 img_focus = img[(int(altezza/5)):(int(altezza*0.95)),int((larghezza/9)):int((larghezza*0.9))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
 cv.imwrite('ritaglio.jpg', img_focus)
@@ -27,13 +28,37 @@ x, y, w, h = cv.boundingRect(c)
 mask=cv.bitwise_not(mask)
 scacchiera=mask[y:y+h,x:x+w]
 
-ret, corners = cv.findCirclesGrid(mask, (2,3), cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
+size = (1,7)
+# termination criteria
+criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+points = np.zeros((size[0] * size[1], 3), np.float32)
+points[:,:2] = np.indices(size).T.reshape(-1, 2)
+
+obj_points = []
+img_points = []
+
+
+ret, corners = cv.findCirclesGrid(mask, (1,7), cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
+print(ret)
 print(corners)
 
+img_points.append(corners)
+obj_points.append(points)
+
 #corners2 = cv.cornerSubPix(gray,corners, (1,2), (-1,-1), (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 60, 0.001))
-cv.drawChessboardCorners(img_focus, (1,3), corners, ret)
+cv.drawChessboardCorners(img_focus, (1,7), corners, ret)
 print("ciao")
 cv.imwrite('exit.jpg', img_focus)
+
+ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(obj_points, img_points, gray.shape[::-1], None, None)
+newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+
+# undistort
+dst = cv.undistort(img_focus, mtx, dist, None, newcameramtx)
+# crop the image
+x, y, w, h = roi
+dst = dst[y:y+h, x:x+w]
+cv.imwrite('calibresult.jpg', dst)
 
 '''
 CHECKERBOARD = (4,3)
