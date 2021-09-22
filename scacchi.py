@@ -58,27 +58,97 @@ print('ciao')
 # Find the chess board corners
 #ret, corners = cv.findChessboardCorners(gray, (7,6), None)
 ret, corners = cv.findCirclesGrid(gray, (2,2), None)
-print(corners)
-print(type(corners))
-print('-----')
-points = corners.reshape((2,2))
+#corners.reshape((2,2))
+rawpoints = corners.ravel()
+print(len(rawpoints))
+#Generazione array delle coordinate iniziali (pre-trasformazione)
+points=np.zeros(8) #[x_0, y_0, x_1, y_1, x_2, y_2, x_3, y_3]
+#Passaggio coordinate da corners a points
+i=0
+while (i<len(rawpoints)):
+    points[i]=rawpoints[i]
+    i=i+1
+print('---------')
 print(points)
-print(type(points))
-print(points[0])
-print(points[1])
-pts1 = np.float32(points[0],points[1])
-pts2 = np.float32()
-'''
-pts1 = np.float32(points[0],points[1])
-pts2 = np.float32()
-M = cv.getPerspectiveTransform(pts1,pts2)
+print('---------')
+cv.drawChessboardCorners(img, (2,2), corners, ret)
+cv.imwrite(str(path+r'/ciaooo.jpg'),img)
 
+#Generazione punti per effetturare la trasformazione
+#P(x_2,y_2) e #P(x_3,y_3)
+if(points[3]<points[1]): # Se il secondo punto (x_1,y_1) si trova più in alto rispetto al primo punto (x_0,y_0)
+    #P(x_2,y_2)
+    points[4]=points[2] # x_2=x_1
+    points[5]=(2*points[1]-points[3]) # y_2=y_0+(y_0-y_1)=2*y_0-y_1
+    #P(x_3,y_3)
+    points[6]=2*points[2]-points[0] #x_3=x_1+(x_1-x_0)=2*x_1-x_0
+    points[1]=points[7] #y_3=y_0
+    print("prova")
+    print(points)
+    # Generazione punti del secondo vettore per effetturare la trasformazione
+    points_t=np.zeros(8)
+    points_t[0]=points[0]
+    points_t[1]=points[1]
+    points_t[2]=points[2] #x_1t = x_1
+    points_t[3]=points_t[1]-points_t[2]+points_t[0] #y_1t = y_0t-(x_1t-x_0t)   ?
+     #P(x_2t,y_2t)
+    points_t[4]=points_t[2] # x_2t=x_1t
+    points_t[5]=(2*points_t[1]-points_t[3]) # y_2=y_0+(y_0-y_1)=2*y_0-y_1
+    #P(x_3,y_3)
+    points_t[6]=2*points_t[2]-points_t[0] #x_3=x_1+(x_1-x_0)=2*x_1-x_0
+    points_t[1]=points_t[7] #y_3=y_0
+    print(points_t)
+
+    pts1=np.float32([[points[0],points[1]],[points[2],points[3]],[points[4],points[5]],[points[6],points[7]]])
+    pts2=np.float32([[points_t[0],points_t[1]],[points_t[2],points_t[3]],[points_t[4],points_t[5]],[points_t[6],points_t[7]]])  
+    M = cv.getPerspectiveTransform(pts1,pts2)
+    dst = cv.warpPerspective(img,M,(int(points[0]),int(points[1])))
+    cv.imwrite(str(path+r'/ciaooo.jpg'),img)
+
+'''
+#P(x_3,y_3)
+print(points)
+points_t=np.zeros(8)
+
+points_t[:2]=points[:2]
+print(points_t)
+points_t[2]=points[2]
+points_t[3]=points[2]-points[0]+points[1]
+points_t[4]=(points_t[0]+points_t[2])/2
+points_t[5]=(points_t[1]+points_t[3])/2
+cv.drawChessboardCorners(img, (2,2), corners, ret)
+pts1=np.float32([[points[0],points[1]],[points[2],points[3]],[points[4],points[5]],[points[6],points[7]]])
+pts2=np.float32([[points_t[0],points_t[1]],[points_t[2],points_t[3]],[points_t[4],points_t[5]]])  
+#M = cv.getPerspectiveTransform(pts1,pts2)
 #dst = cv.warpPerspective(img,M,(300,300))
+cv.imwrite(str(path+r'/ciaooo.jpg'),img)
+#    elif (points[0]<points[2]):
+if (points[0]<points[2]):  # se il primo punto si trova dopo al secondo punto rispetto all'asse x
+    points_t[0]=points[0]
+    points_t[1]=points[1]
+    points_t[2]=points[2]
+    points_t[3]=points[2]-points[0]+points[1]
+    points_t[4]=(points_t[0]+points_t[2])/2
+    points_t[5]=(points_t[1]+points_t[3])/2
+    cv.drawChessboardCorners(img, (2,2), corners, ret)
+    pts1=np.float32([[points[0],points[1]],[points[2],points[3]],[points[4],points[5]]])
+    pts2=np.float32([[points_t[0],points_t[1]],[points_t[2],points_t[3]],[points_t[4],points_t[5]]])  
+    #M = cv.getPerspectiveTransform(pts1,pts2)
+    #dst = cv.warpPerspective(img,M,(300,300))
+    cv.imwrite(str(path+r'/ciaooo.jpg'),img)
+#    elif (points[0]<points[2]):
+       
+
+#pts1 = np.float32(points[0],points[1])
+#pts2 = np.float32()
+
+pts1 = np.float32(points[0],points[1])
+pts2 = np.float32()
 
 print(ret)
-#cv.imwrite(str(path+r'/ciaooo.jpg'),dst)ù
-'''
-'''
+#cv.imwrite(str(path+r'/ciaooo.jpg'),dst)
+
+
 # If found, add object points, image points (after refining them)
 if ret == True:
     print('boh')
