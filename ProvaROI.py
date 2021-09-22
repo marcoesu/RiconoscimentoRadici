@@ -23,7 +23,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             nomefile,ext = os.path.splitext(nomefile) #rimozione dell'estensione ".JPG" dal nome del file
             image = cv.imread(f1)   #lettura dell'immagine dal disco
             altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
-            img_focus = image[(int(altezza/4)):(int(altezza)),int((larghezza/9)):int((larghezza))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
+            img_focus = image[(int(altezza/5)):(int(altezza*0.95)),int((larghezza/9)):int((larghezza*0.9))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
             altezza, larghezza = img_focus.shape[:2]    # dimensioni dell'immagine leggermente ritagliata
 
             img_hsv = cv.cvtColor(img_focus, cv.COLOR_BGR2HSV) #conversione da BGR (Blu, Verde, Rosso) ad HSV
