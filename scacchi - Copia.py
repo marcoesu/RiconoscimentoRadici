@@ -4,8 +4,7 @@ import glob
 import os
 path = os.path.abspath(os.path.dirname(__file__)) #Salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  # Cambio della cartella attuale nella cartella in cui si trova il file .py
-#img = cv.imread(path+r'/'+'a.jpg')
-'''
+img = cv.imread(path+r'/'+'a.jpg')
 hsv=cv.cvtColor(img, cv.COLOR_BGR2HSV)
 #aaa, thresh = cv.threshold(gray, 200, 255, cv.THRESH_BINARY)
 #CALIB_CB_FAST_CHECK saves a lot of time on images
@@ -32,62 +31,12 @@ pino = cv.bitwise_or(gray, mask)
 #params = cv.SimpleBlobDetector_Params()
 #params.maxArea = 100000
 #detector = cv.SimpleBlobDetector_create(params)
-ret, corners = cv.findCirclesGrid(img, (1,60), cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) #,  blobDetector=detector)
+ret, corners = cv.findCirclesGrid(scacchiera, (1,30), cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) #,  blobDetector=detector)
 print(corners)
-cv.drawChessboardCorners(img, (2,3), corners, ret)
-cv.imwrite(path+r'/scacchiera.jpg', img)
+cv.imwrite(path+r'/scacchiera.jpg', scacchiera)
 #cv.waitKey(2000)
 if(ret==True):
     corners2 = cv.cornerSubPix(pino,corners, (1,1), (-1,-1), (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 60, 0.001))
     cv.drawChessboardCorners(img, (2,1), corners2, ret)
     print("ciao")
-    cv.imwrite(str(path+r'/exit.jpg'), img)
-    '''
-# termination criteria
-criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((2*2,3), np.float32)
-objp[:,:2] = np.mgrid[0:2,0:2].T.reshape(-1,2)
-# Arrays to store object points and image points from all the images.
-aaapoints = [] # 2d points in image plane.
-img = cv.imread(str(path+r'/a.jpg'))
-print('ciao')
-gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-cv.imwrite(str(path+r'/gray.jpg'),gray)
-print('ciao')
-# Find the chess board corners
-#ret, corners = cv.findChessboardCorners(gray, (7,6), None)
-ret, corners = cv.findCirclesGrid(gray, (2,2), None)
-print(corners)
-print(type(corners))
-print('-----')
-points = corners.reshape((2,2))
-print(points)
-print(type(points))
-print(points[0])
-print(points[1])
-pts1 = np.float32(points[0],points[1])
-pts2 = np.float32()
-'''
-pts1 = np.float32(points[0],points[1])
-pts2 = np.float32()
-M = cv.getPerspectiveTransform(pts1,pts2)
-
-#dst = cv.warpPerspective(img,M,(300,300))
-
-print(ret)
-#cv.imwrite(str(path+r'/ciaooo.jpg'),dst)ù
-'''
-'''
-# If found, add object points, image points (after refining them)
-if ret == True:
-    print('boh')
-    objpoints.append(objp)
-    #corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
-    # Draw and display the corners
-    cv.drawChessboardCorners(img, (2,2), corners, ret)
-    #cv.imshow('img', img)
-    #cv.waitKey()
-    cv.imwrite(str(path+r'/ciaooo.jpg'),img)
-cv.destroyAllWindows()
-'''
+    cv.imwrite(str(r'C:\Users\esu7z\Desktop\GitHub\IdentificazioneQR\b.jpg'+'exit.jpg'), img)
