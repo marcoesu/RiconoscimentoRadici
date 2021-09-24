@@ -38,12 +38,12 @@ def Archiviazione(path,file,immagine,codice): #Spostamento file campione nella s
             os.makedirs(path+r'/'+codice)            #crea la cartella dedicata
             print(str('Cartella '+codice +' creata.'))
     nomefile = os.path.basename(file)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
-    with open(nomefile, 'rb') as fh:
-        tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal")
-        DataScatto = str(tags['EXIF DateTimeOriginal'])
-        anno, mese, giornoora, minuti, secondi = DataScatto.split(":", 5)
-        giorno, ora = giornoora.split(" ",1)
-        fh.close()
+    with open(nomefile, 'rb') as fh: #apre il file e lo restituisce come oggetto
+        tags = exifread.process_file(fh, stop_tag="EXIF DateTimeOriginal") #viene preso solamente il tag contenente la data e l'ora dello scatto originale
+        DataScatto = str(tags['EXIF DateTimeOriginal']) #viene assegnato il valore alla variabile
+        anno, mese, giornoora, minuti, secondi = DataScatto.split(":", 5) #viene suddivisa l'informazione in più campi, separati da :
+        giorno, ora = giornoora.split(" ",1) #scomposizione giorno e ora tramite uno spazio
+        fh.close() #chiude il file aperto
     shutil.move(file,str(path + r'/' + codice + r'/' + codice +' '+anno+'-'+mese+'-'+giorno+' '+ora+'-'+minuti+'-'+secondi+'.jpg')) 
     #sposta il file jpg dalla cartella path alla sottocartella del rispettivo soggetto, rinominandolo utilizzando il codice del soggetto estratto dal QR, la data e l'ora
 
@@ -63,25 +63,8 @@ for f1 in files: # ciclo che scorre le immagini nella cartella path
     
     image = cv.imread(f1)   #lettura dell'immagine
     altezza, larghezza = image.shape[:2] #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
-    #zonaqr=image[(int(altezza/4)):(int(altezza/2)),int((larghezza/10)):int((larghezza/3.5))]    # sezione dell'immagine analizzata contenente il QR identificativo
     zonaqrsx=image[(int(altezza/6)):(int(altezza*0.3)),int((larghezza/10)):int((larghezza/5))]    # sezione dell'immagine analizzata contenente il QR identificativo
     zonaqrdx=image[(int(altezza*0.15)):(int(altezza*0.3)),int((larghezza*0.8)):int((larghezza*0.9))]
-    #zonaqr=image[(int(altezza*0.2)):(int(altezza*0.3)),int((larghezza*0.8)):int((larghezza*0.9))]
-    #zonaqr=image[int(1200):int(1420),int(490):int(710)]
-    #zonaqr2=image[3300:3560,1200:1460]
-    '''for qrsx in decode(zonaqrsx):   #ciclo for utilizzato per decodificare il QR di ogni immagine
-        print(str(os.path.basename(f1)))
-        codid=qrsx.data.decode('utf-8')    #codice identificativo estratto dal QR
-        print(codid +"ciao")
-        if codid: Archiviazione(path,f1,codid)
-        else:
-            print("QR sinistro non riconosciuto")
-            cv.imwrite(str(os.path.basename(f1)+'_qrsx.jpg'), zonaqrsx)
-            for qrdx in decode(zonaqrdx):   #ciclo for utilizzato per decodificare il QR di ogni immagine
-                codid=qrdx.data.decode('utf-8')    #codice identificativo estratto dal QR
-                print(codid)
-                if codid: Archiviazione(path,f1,codid)
-                else: cv.imwrite(str(os.path.basename(f1)+'qrdx.jpg'), zonaqrdx)'''
     for qrsx in decode(zonaqrsx):  #ciclo for utilizzato per decodificare il QR di ogni immagine
         codid=qrsx.data.decode('utf-8')    #codice identificativo estratto dal QR
         Archiviazione(path,f1,image,codid)

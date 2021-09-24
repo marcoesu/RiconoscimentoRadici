@@ -54,9 +54,13 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
           
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per trovare le radici
             mask_inv = mask_inv[y:y+h,x:x+w]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
-            ske = (skeletonize(mask_inv//255) * 255).astype(np.uint8)
 
-
+            ske = (skeletonize(mask_inv//255) * 255).astype(np.uint8) #applicazione della funzione skeletonize
+            kernel = np.ones((5,5),np.uint8)
+            erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
+            dilation = cv.dilate(mask_inv,kernel,iterations = 1) #dilazione
+            opening = cv.morphologyEx(mask_inv, cv.MORPH_OPEN, kernel) #opening
+            closing = cv.morphologyEx(mask_inv, cv.MORPH_CLOSE, kernel) #closing
 
             # Applicazione del Thresholding adattivo (Gaussian)
             #mask_inv = cv.medianBlur(mask_inv,5) #meglio 3
@@ -73,12 +77,16 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             
             # Salvataggio delle immagini elaborate su disco
             cv.imwrite(str(nomefile +'_focus.jpg'), img_focus)
-            cv.imwrite(str(nomefile +'_hsv.jpg'), img_hsv)
+            #cv.imwrite(str(nomefile +'_hsv.jpg'), img_hsv)
             cv.imwrite(str(nomefile +'_radici.jpg'), radici)
-            cv.imwrite(str(nomefile +'_cartoncino_hsv.jpg'), cartoncino_hsv)
-            cv.imwrite(str(nomefile +'_maschera.jpg'), mask)
+            #cv.imwrite(str(nomefile +'_cartoncino_hsv.jpg'), cartoncino_hsv)
+            #cv.imwrite(str(nomefile +'_maschera.jpg'), mask)
             cv.imwrite(str(nomefile +'_maschera_invertita.jpg'), mask_inv)
             cv.imwrite(str(nomefile +'_skel.jpg'), ske)
+            cv.imwrite(str(nomefile +'_erosion.jpg'), erosion)
+            cv.imwrite(str(nomefile +'_dilation.jpg'), dilation)
+            cv.imwrite(str(nomefile +'_opening.jpg'), opening)
+            cv.imwrite(str(nomefile +'_closing.jpg'), closing)
             cv.imwrite(str(nomefile +'_ThresholdAdattivo.jpg'), ThresholdAdattivo)
             cv.imwrite(str(nomefile +'_ThresholdAdattivoBitwise.jpg'), ThresholdAdattivoBitwise)
             cv.imwrite(str(nomefile +'_cartoncino.jpg'), cartoncino)
