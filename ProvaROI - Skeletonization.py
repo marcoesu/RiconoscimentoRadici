@@ -55,9 +55,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per trovare le radici
             mask_inv = mask_inv[y:y+h,x:x+w]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
 
-            ske = (skeletonize(mask_inv//255) * 255).astype(np.uint8) #applicazione della funzione skeletonize
             kernel = np.ones((5,5),np.uint8)
             erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
+
+            ske = (skeletonize(erosion//255) * 255).astype(np.uint8) #applicazione della funzione skeletonize
+            kernel = np.ones((5,5),np.uint8)
+            #erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
             dilation = cv.dilate(mask_inv,kernel,iterations = 1) #dilazione
             opening = cv.morphologyEx(mask_inv, cv.MORPH_OPEN, kernel) #opening
             closing = cv.morphologyEx(mask_inv, cv.MORPH_CLOSE, kernel) #closing
