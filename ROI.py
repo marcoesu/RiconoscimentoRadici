@@ -6,29 +6,32 @@ import glob
 import shutil #permette di effettuare operazioni su file
 from skimage.morphology import thin
 
-def RimozioneNastro(image,nomefile):
+def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
     print("Rimozione nastro")
-    altezza, larghezza = image.shape[:2]
-    c=0 #contatore
-    nastro = True
-    lim_area1=0
-    lim_area2=larghezza
-    max_val=int(larghezza*0.35)
-    while (nastro==True and (c < altezza)):
-        area=image[c:c+1,lim_area1:lim_area2]
-        count=np.count_nonzero(area)
-        if count > max_val:
-            image[c:c+1,lim_area1:lim_area2]=[0]
-            #cv.imshow('ciao', image)
-            #cv.waitKey(1)
+    altezza, larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
+    c=0             #contatore
+    nastro = True   # booleano che indica la presenza di nastro in cima al cartoncino
+
+    # Definizione dei limiti destro e sinistro per l'operazione di oscuramento
+    lim_area1=int(larghezza*0.1)
+    lim_area2=int(larghezza*0.9)
+    max_val=int(larghezza*0.3) # Valore limite che suggerisce se in un'area vi è del nastro oppure no
+    while (nastro==True and (c < altezza)): #ciclo che scorre riga per riga l'immagine
+        area=image[c:c+1,lim_area1:lim_area2]   #definizione dell'area di lavoro per l'iterazione corrente
+        count=np.count_nonzero(area)            # conteggio dei pixel di colore diverso dal nero !=[0]
+        if count > max_val:  # se il numero di pixel calcolato è superiore al massimo valore ammissibile
+            image[c:c+1,lim_area1:lim_area2]=[0]       # oscura l'area, facendo diventare neri i pixel
+            cv.imshow('Rimozione nastro su '+nomefile, image)
+            cv.waitKey(1)
         elif count <=max_val:
+            cv.destroyAllWindows()
             nastro=False
             if c!=0:
-                image[(c):(c+3),lim_area1:lim_area2]=[0] # rimozione di 3 righe in più per eliminare eventuali residui di nastro
-                ritaglio_radici = image[c+3:altezza,0:larghezza]
-                cv.imwrite(nomefile+'ritaglio_radici.jpg', ritaglio_radici)
+                image[(c):(c+3),lim_area1:lim_area2]=[0] # rimozione di 10 righe in più per eliminare eventuali residui di nastro
+                ritaglio_radici = image[c+10:altezza,0:larghezza]   # definizione della nuova area contenente le radici
+                cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici)
         c=c+1
-    #cv.imwrite(str(nomefile +'_nuovo.jpg'), image)   
+      
 
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
@@ -36,9 +39,8 @@ os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il
 scansione = os.scandir() #scansione dei file all'interno della cartella path
 for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
     if sottocartella.is_dir():  #controllo se il file in esame è una cartella
-        subpath = str(path + r'/'+ sottocartella.name)
+        subpath = str(path + r'/'+ sottocartella.name) # Percorso della sottocartella
         os.chdir(subpath)   # passaggio alla sottocartella in esame
-        #scansubdir = os.scandir()
         data_path = os.path.join(subpath,'*[0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
                                                     # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da un precedente avvio del programma
                                                     # non vengono utilizzati come input dal programma.                                                    
@@ -67,24 +69,26 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             x, y, w, h = cv.boundingRect(c) #Restituisce le coordinate dell'area che contiene il contorno 
                                             #(le coordinate di un rettangolo, più precisamente le coordinate del vertice sinistro superiore e le dimensioni del rettangolo)
-            scarto_x = int(larghezza*0.02)
-            scarto_y = int(larghezza*0.02)
+            scarto_x = int(larghezza*0.02) #margine per eliminare i bordi del cartoncino a destra e sinistra
+            scarto_y = int(altezza*0.02) #margine per eliminare i bordi del cartoncino in fondo all'immagine
 
             cartoncino = img_focus[y:y+h-scarto_y,x+scarto_y:x+w-scarto_y,:] #Ritaglio del cartoncino
           
-            mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per trovare le radici
-            mask_inv = mask_inv[y:y+h-scarto_y,x+scarto_y:x+w-scarto_y]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
-            
+            mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per evidenziare le radici
+            mask_inv = mask_inv[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
+
             #Rimozione dell'eventuale nastro che tiene fissata la pianta al cartoncino
-            RimozioneNastro(mask_inv,nomefile)
+            RimozioneNastro(mask_inv,subpath,nomefile)
 
-            #aggiungere un margine per eliminare i bordi del cartoncino
-            kernel = np.ones((5,5),np.uint8)
+            kernel = np.ones((5,5),np.uint8) # definizione del kernel
             erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
-            erosion=erosion.astype(bool)
+            erosion=erosion.astype(bool) # Conversione in binario in modo da avere
+                                         # 1 per valori > 0 in BGR, 0 per valori uguali a zero in BGR
 
+            #Thinning
             print('Thinning dell\'immagine')
             thinning = (thin(erosion)*255).astype(np.uint8) #applicazione della funzione thinning
+            print('Thinning eseguito')
 
             # Salvataggio delle immagini elaborate su disco
             cv.imwrite(str(nomefile +'_focus.jpg'), img_focus)

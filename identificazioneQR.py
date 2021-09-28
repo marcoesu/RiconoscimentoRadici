@@ -33,9 +33,9 @@ def EstrazioneCampioni():   # Funzione che si occupa dell'estrazione delle immag
     except:
         print("File non valido.")
 
-def Archiviazione(path,file,immagine,codice): #Spostamento file campione nella sottocartella dedicata
-    if not os.path.exists(path+r'/'+codice):     # controlla che esista la sottocartella dedicata al soggetto in analisi
-            os.makedirs(path+r'/'+codice)            #crea la cartella dedicata
+def Archiviazione(path,file,immagine,codice): # Spostamento file campione nella sottocartella dedicata
+    if not os.path.exists(path+r'/'+codice):  # controlla che esista la sottocartella dedicata al soggetto in analisi
+            os.makedirs(path+r'/'+codice)     # crea la cartella dedicata
             print(str('Cartella '+codice +' creata.'))
     nomefile = os.path.basename(file)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
     with open(nomefile, 'rb') as fh: #apre il file e lo restituisce come oggetto
@@ -65,34 +65,16 @@ for f1 in files: # ciclo che scorre le immagini nella cartella path
     altezza, larghezza = image.shape[:2] #salva le dimensioni dell'immagine (espresse come una tupla) in dim. quindi altezza = dim[1], lunghezza = dim[2]
     zonaqrsx=image[(int(altezza/6)):(int(altezza*0.3)),int((larghezza/10)):int((larghezza/5))]    # sezione dell'immagine analizzata contenente il QR identificativo
     zonaqrdx=image[(int(altezza*0.15)):(int(altezza*0.3)),int((larghezza*0.8)):int((larghezza*0.9))]
-    for qrsx in decode(zonaqrsx):  #ciclo for utilizzato per decodificare il QR di ogni immagine
-        codid=qrsx.data.decode('utf-8')    #codice identificativo estratto dal QR
-        Archiviazione(path,f1,image,codid)
+    for qrsx in decode(zonaqrsx):  # ciclo for utilizzato per decodificare il QR di ogni immagine
+        codid=qrsx.data.decode('utf-8')    # codice identificativo estratto dal QR
+        Archiviazione(path,f1,image,codid) # Spostamento file campione nella sottocartella dedicata
         print("Decodifica riuscita: QR a sinistra per "+ str(os.path.basename(f1)))
     if os.path.exists(f1):
-        for qrdx in decode(zonaqrdx):   #ciclo for utilizzato per decodificare il QR di ogni immagine
-            codid=qrdx.data.decode('utf-8')    #codice identificativo estratto dal QR
-            Archiviazione(path,f1,image,codid)
+        for qrdx in decode(zonaqrdx):   # ciclo for utilizzato per decodificare il QR di ogni immagine
+            codid=qrdx.data.decode('utf-8')    # codice identificativo estratto dal QR
+            Archiviazione(path,f1,image,codid) # Spostamento file campione nella sottocartella dedicata
             print("Decodifica riuscita: QR a destra per "+ str(os.path.basename(f1)))
     if os.path.exists(f1):
-       cv.imwrite(str(os.path.basename(f1)+'qrsx.jpg'), zonaqrsx)
-       cv.imwrite(str(os.path.basename(f1)+'qrdx.jpg'), zonaqrdx)
-
-
-
-
-
-
-'''
-    
-        if not codid:
-            print("ciao")
-            for qr2 in decode(zonaqr2):
-                codid=qr.data.decode('utf-8')
-        #cv.imshow(str(codid),zonaqr)
-        #cv.waitKey(0)
-        if not os.path.exists(path+r'/'+codid):     # controlla che esista la sottocartella dedicata al soggetto in analisi
-            os.makedirs(path+r'/'+codid)            #crea la cartella dedicata
-            print(str('Cartella '+codid+' creata.'))
-        shutil.move(f1,str(os.path.dirname(f1) + r'/' + codid + r'/' + os.path.basename(f1)))'''   #sposta il file jpg dalla cartella path alla sottocartella del rispettivo soggetto
+       cv.imwrite(str(os.path.basename(f1)+'qrsx.jpg'), zonaqrsx) # Salvataggio su disco del QR sinistro non riconosciuto
+       cv.imwrite(str(os.path.basename(f1)+'qrdx.jpg'), zonaqrdx) # # Salvataggio su disco del QR destro non riconosciuto
 print("Processo terminato.")      
