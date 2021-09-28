@@ -68,12 +68,12 @@ for f1 in files: # ciclo che scorre le immagini nella cartella path
     for qrsx in decode(zonaqrsx):  # ciclo for utilizzato per decodificare il QR di ogni immagine
         codid=qrsx.data.decode('utf-8')    # codice identificativo estratto dal QR
         Archiviazione(path,f1,image,codid) # Spostamento file campione nella sottocartella dedicata
-        print("Decodifica riuscita: QR a sinistra per "+ str(os.path.basename(f1)))
+        print("Decodifica riuscita per " + str(os.path.basename(f1)) + " su QR a sinistra")
     if os.path.exists(f1):
         for qrdx in decode(zonaqrdx):   # ciclo for utilizzato per decodificare il QR di ogni immagine
             codid=qrdx.data.decode('utf-8')    # codice identificativo estratto dal QR
             Archiviazione(path,f1,image,codid) # Spostamento file campione nella sottocartella dedicata
-            print("Decodifica riuscita: QR a destra per "+ str(os.path.basename(f1)))
+            print("Decodifica riuscita per " + str(os.path.basename(f1)) + " su QR a destra")
     if os.path.exists(f1):
        cv.imwrite(str(os.path.basename(f1)+'qrsx.jpg'), zonaqrsx) # Salvataggio su disco del QR sinistro non riconosciuto
        cv.imwrite(str(os.path.basename(f1)+'qrdx.jpg'), zonaqrdx) # # Salvataggio su disco del QR destro non riconosciuto

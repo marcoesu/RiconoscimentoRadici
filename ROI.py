@@ -4,33 +4,35 @@ from pyzbar.pyzbar import decode #decodifica del QR
 import os # utilizzata per effettuare operazioni sulle cartelle
 import glob
 import shutil #permette di effettuare operazioni su file
-from skimage.morphology import thin
+from skimage.morphology import thin # pip install scikit-image 
+#(Potrebbe essere necessario aggiungere una cartella al PATH di sistema, vedere output installazione)
 
 def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
-    print("Rimozione nastro")
     altezza, larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
-    c=0             #contatore
+    c=0     #contatore di riga
     nastro = True   # booleano che indica la presenza di nastro in cima al cartoncino
-
+    print("Rimozione nastro...")
     # Definizione dei limiti destro e sinistro per l'operazione di oscuramento
     lim_area1=int(larghezza*0.1)
     lim_area2=int(larghezza*0.9)
     max_val=int(larghezza*0.3) # Valore limite che suggerisce se in un'area vi è del nastro oppure no
-    while (nastro==True and (c < altezza)): #ciclo che scorre riga per riga l'immagine
+    while (nastro==True and (c < altezza)): #ciclo che scorre l'immagine riga per riga
         area=image[c:c+1,lim_area1:lim_area2]   #definizione dell'area di lavoro per l'iterazione corrente
         count=np.count_nonzero(area)            # conteggio dei pixel di colore diverso dal nero !=[0]
-        if count > max_val:  # se il numero di pixel calcolato è superiore al massimo valore ammissibile
+        if count >= max_val:  # se il numero di pixel calcolato è superiore al massimo valore ammesso
             image[c:c+1,lim_area1:lim_area2]=[0]       # oscura l'area, facendo diventare neri i pixel
             cv.imshow('Rimozione nastro su '+nomefile, image)
             cv.waitKey(1)
-        elif count <=max_val:
+        elif count <max_val: # se il numero di pixel calcolato è inferiore al massimo valore ammesso
             cv.destroyAllWindows()
-            nastro=False
-            if c!=0:
+            nastro=False # viene posto nastro al valore False, indicando la fine del nastro nell'immagine
+            if c!=0:  # se sono state oscurate parti dell'immagine:
+                print("Nastro rimosso.")
                 image[(c):(c+3),lim_area1:lim_area2]=[0] # rimozione di 10 righe in più per eliminare eventuali residui di nastro
                 ritaglio_radici = image[c+10:altezza,0:larghezza]   # definizione della nuova area contenente le radici
-                cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici)
-        c=c+1
+                cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici) #salvataggio dell'immagine ritagliata su disco
+            else: print("Non è stato trovato alcun nastro.")
+        c=c+1   #incremento del contatore di riga
       
 
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
@@ -42,13 +44,14 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
         subpath = str(path + r'/'+ sottocartella.name) # Percorso della sottocartella
         os.chdir(subpath)   # passaggio alla sottocartella in esame
         data_path = os.path.join(subpath,'*[0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
-                                                    # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da un precedente avvio del programma
+                                                    # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da una precedente esecuzione del programma
                                                     # non vengono utilizzati come input dal programma.                                                    
         files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*[0-9].jpg -> lista di elementi con estensione jpg che hanno una cifra come ultimo carattere del nome)
         for f1 in files:    #Ciclo per scorrere tutte le immagini delle sottocartelle 
             nomefile = os.path.basename(f1)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
             nomefile,ext = os.path.splitext(nomefile) #rimozione dell'estensione ".JPG" dal nome del file
             image = cv.imread(f1)   #lettura dell'immagine dal disco
+            print(str('Scansione del file '+nomefile+' in corso.'))
             altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
             img_focus = image[(int(altezza/5)):(int(altezza*0.95)),int((larghezza/9)):int((larghezza*0.9))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
             altezza, larghezza = img_focus.shape[:2]    # dimensioni dell'immagine leggermente ritagliata
@@ -86,9 +89,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                                          # 1 per valori > 0 in BGR, 0 per valori uguali a zero in BGR
 
             #Thinning
-            print('Thinning dell\'immagine')
+            print('Thinning dell\'immagine...')
             thinning = (thin(erosion)*255).astype(np.uint8) #applicazione della funzione thinning
-            print('Thinning eseguito')
+            print('Thinning eseguito.')
 
             # Salvataggio delle immagini elaborate su disco
             cv.imwrite(str(nomefile +'_focus.jpg'), img_focus)
