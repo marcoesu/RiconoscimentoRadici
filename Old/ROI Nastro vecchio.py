@@ -8,31 +8,36 @@ from skimage.morphology import thin # pip install scikit-image
 #(Potrebbe essere necessario aggiungere una cartella al PATH di sistema, vedere output installazione)
 
 def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
-    #altezza, larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
-    r=0     #contatore di riga
-    c=0     # indice di taglio
+    altezza, larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
+    c=0     #contatore di riga
     nastro = True   # booleano che indica la presenza di nastro in cima al cartoncino
     print("Rimozione nastro...")
     # Definizione dei limiti destro e sinistro per l'operazione di oscuramento
-    lim_x1 = int(larghezza*0.25)
-    lim_x2= int(larghezza*0.75)
-    lim_y = int(altezza*0.25)
-    max_val = int(larghezza*0.3) # Valore limite che suggerisce se in un'area vi è del nastro oppure no
-    while (r<lim_y):
-        area=image[r:(r+1),lim_x1:lim_x2]   #definizione dell'area di lavoro per l'iterazione corrente
+    lim_area1=int(larghezza*0.1)
+    lim_area2=int(larghezza*0.9)
+    max_val=int(larghezza*0.3) # Valore limite che suggerisce se in un'area vi è del nastro oppure no
+    while (nastro==True and (c < altezza)): #ciclo che scorre l'immagine riga per riga
+        area=image[c:c+1,lim_area1:lim_area2]   #definizione dell'area di lavoro per l'iterazione corrente
         count=np.count_nonzero(area)            # conteggio dei pixel di colore diverso dal nero !=[0]
         if count >= max_val:  # se il numero di pixel calcolato è superiore al massimo valore ammesso
-            c = r+1 # si pone l'indice di taglio pari all'indice della riga successiva a quella considerata
-        r=r+1 # incremento del contatore di riga
-    if c!=0:  # se sono state oscurate parti dell'immagine:
+            image[c:c+1,lim_area1:lim_area2]=[0]       # oscura l'area, facendo diventare neri i pixel
+            cv.imshow('Rimozione nastro su '+nomefile, image)
+            cv.waitKey(5)
+        elif count <max_val: # se il numero di pixel calcolato è inferiore al massimo valore ammesso
+            cv.destroyAllWindows()
+            nastro=False # viene posto nastro al valore False, indicando la fine del nastro nell'immagine
+            if c!=0:  # se sono state oscurate parti dell'immagine:
                 print("Nastro rimosso.")
-                cv.imwrite(str(nomefile +' pre-rimozione.jpg'), image) #salvataggio su disco dell'immagine prima della rimozione del nastro
-                image = image[c+30:altezza,0:larghezza]   # definizione della nuova area contenente le radici
+                image[(c):(c+10),lim_area1:lim_area2]=[0] # rimozione di 10 righe in più per eliminare eventuali residui di nastro
+                #ritaglio_radici = image[c+10:altezza,0:larghezza]   # definizione della nuova area contenente le radici
+                image = image[c+10:altezza,0:larghezza]   # definizione della nuova area contenente le radici
                 #cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici) #salvataggio dell'immagine ritagliata su disco
                 return image
-    elif c==0:  #oppure se c è uguale a 0 significa che non vi è alcun nastro nell'area considerata.
-        print("Non è stato trovato alcun nastro.")
-        return image
+            elif c==0:
+                print("Non è stato trovato alcun nastro.")
+                return image
+        c=c+1   #incremento del contatore di riga
+      
 
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
@@ -52,8 +57,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             image = cv.imread(f1)   #lettura dell'immagine dal disco
             print(str('Scansione del file '+nomefile+' in corso.'))
             altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
-            #img_focus = image[(int(altezza/5)):(int(altezza*0.95)),int((larghezza/9)):int((larghezza*0.9))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
-            img_focus = image[1200:5700,450:3600] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
+            img_focus = image[(int(altezza/5)):(int(altezza*0.95)),int((larghezza/9)):int((larghezza*0.9))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
             altezza, larghezza = img_focus.shape[:2]    # dimensioni dell'immagine leggermente ritagliata
 
             img_hsv = cv.cvtColor(img_focus, cv.COLOR_BGR2HSV) #conversione da BGR (Blu, Verde, Rosso) ad HSV
@@ -72,10 +76,10 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             x, y, w, h = cv.boundingRect(c) #Restituisce le coordinate dell'area che contiene il contorno 
                                             #(le coordinate di un rettangolo, più precisamente le coordinate del vertice sinistro superiore e le dimensioni del rettangolo)
-            scarto_x = int(larghezza*0.03) #margine per eliminare i bordi del cartoncino a destra e sinistra
+            scarto_x = int(larghezza*0.02) #margine per eliminare i bordi del cartoncino a destra e sinistra
             scarto_y = int(altezza*0.02) #margine per eliminare i bordi del cartoncino in fondo all'immagine
 
-            cartoncino = img_focus[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x,:] #Ritaglio del cartoncino
+            cartoncino = img_focus[y:y+h-scarto_y,x+scarto_y:x+w-scarto_y,:] #Ritaglio del cartoncino
           
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per evidenziare le radici
             mask_inv = mask_inv[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
