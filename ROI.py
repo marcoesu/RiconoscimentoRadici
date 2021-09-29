@@ -22,16 +22,20 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
         if count >= max_val:  # se il numero di pixel calcolato è superiore al massimo valore ammesso
             image[c:c+1,lim_area1:lim_area2]=[0]       # oscura l'area, facendo diventare neri i pixel
             cv.imshow('Rimozione nastro su '+nomefile, image)
-            cv.waitKey(1)
+            cv.waitKey(5)
         elif count <max_val: # se il numero di pixel calcolato è inferiore al massimo valore ammesso
             cv.destroyAllWindows()
             nastro=False # viene posto nastro al valore False, indicando la fine del nastro nell'immagine
             if c!=0:  # se sono state oscurate parti dell'immagine:
                 print("Nastro rimosso.")
-                image[(c):(c+3),lim_area1:lim_area2]=[0] # rimozione di 10 righe in più per eliminare eventuali residui di nastro
-                ritaglio_radici = image[c+10:altezza,0:larghezza]   # definizione della nuova area contenente le radici
-                cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici) #salvataggio dell'immagine ritagliata su disco
-            else: print("Non è stato trovato alcun nastro.")
+                image[(c):(c+10),lim_area1:lim_area2]=[0] # rimozione di 10 righe in più per eliminare eventuali residui di nastro
+                #ritaglio_radici = image[c+10:altezza,0:larghezza]   # definizione della nuova area contenente le radici
+                image = image[c+10:altezza,0:larghezza]   # definizione della nuova area contenente le radici
+                #cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici) #salvataggio dell'immagine ritagliata su disco
+                return image
+            elif c==0:
+                print("Non è stato trovato alcun nastro.")
+                return image
         c=c+1   #incremento del contatore di riga
       
 
@@ -81,7 +85,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             mask_inv = mask_inv[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
 
             #Rimozione dell'eventuale nastro che tiene fissata la pianta al cartoncino
-            RimozioneNastro(mask_inv,subpath,nomefile)
+            mask_inv = RimozioneNastro(mask_inv,subpath,nomefile)
 
             kernel = np.ones((5,5),np.uint8) # definizione del kernel
             erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
