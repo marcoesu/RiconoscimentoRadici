@@ -47,7 +47,7 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
                 image_bgr[inizio_nastro:c,lim_x1:lim_x1+1]=[0,255,0]
                 image_bgr[inizio_nastro:c,lim_x2-1:lim_x2]=[0,255,0]
                 image_bgr[c:c+1,lim_x1:lim_x2]=[0,255,0]
-                image_bgr[c+25:c+26,lim_x1:lim_x2]=[255,0,0]
+                image_bgr[c+25:c+26,lim_x1:lim_x2]=[0,0,255]
                 nastro = image_bgr[inizio_nastro:inizio_nastro+600,lim_x1:lim_x2]
                 cv.imwrite(str(nomefile +' zona.jpg'), zona)
                 cv.imwrite(str(nomefile +' nastro.jpg'), nastro)
