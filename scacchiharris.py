@@ -47,6 +47,7 @@ while (riga < altezza) :
     riga = riga+1        
 
 x = x.reshape(grandezza,2)
+print(x)
 
 print('------------------')
 
@@ -54,10 +55,30 @@ cv.imwrite('exit_float.jpg', img)
 
 cv.imwrite('nero.png', nero)
 
-db = DBSCAN(eps=30, min_samples=3).fit(x)
+db = DBSCAN(eps=5, min_samples=100).fit(x)
 
+labels = db.labels_
+labels
 print(db.labels_)
+np.set_printoptions(threshold=labels.size)
+file = open("prova.txt","w")
+file.write(str(db.labels_))
+cont = 0
 
+
+for l in labels:    
+    if (l != -1):
+        if (l == cont) : #scorrimento
+            file.write('ciao')
+        elif(l != cont) :
+            file.write(str(l))
+            file.write('#######')
+            cont += 1
+            file.write(str(cont))
+            file.write('-------')   
+print(cont)    
+
+'''
 cv.imwrite('output.png', db.labels_)
 
 dbscan = np.zeros((altezza, larghezza))
@@ -91,9 +112,9 @@ while (contatore < grandezza and n_cluster <= grandezza_p_medi):
         media_punti[copia_corners] = x[int(puntatore+copia_corners)]
         print(x[int(puntatore+copia_corners)])
         print('media punti' + str(media_punti))
-        '''
+        
         p_medi[n_cluster] = average(media_punti)
-        print(p_medi[n_cluster])'''
+        print(p_medi[n_cluster])
         copia_corners +=1
     
     media_punti_x = np.ndarray(n_elementi_cluster)
@@ -133,11 +154,11 @@ cv.imwrite('dbscan.png',dbscan)
 
     
 
-'''p_medi = p_medi.astype(np.uint8)
-print(p_medi)'''
+p_medi = p_medi.astype(np.uint8)
+print(p_medi)
 
 
-'''
+
 riga = 0
 contatore = 0
 
@@ -149,6 +170,6 @@ while (riga < altezza) :
             x[contatore+1] = riga
             contatore = contatore+2
         colonna = colonna+1
-    riga = riga+1  '''
-
+    riga = riga+1
+'''
 #cv.imwrite('bianco.png', bianco)
