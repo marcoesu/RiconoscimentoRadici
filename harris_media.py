@@ -38,15 +38,15 @@ print('----------------------')
 
 cv.imwrite('nero.png', nero)
 
-raggio=5
+raggio=3
 #definizione zona
 #grandezza=np.count
 #x= np.ndarray(int(np))
 
-riga = raggio
+riga = 0
 
 while (riga < altezza-raggio) : 
-    colonna = raggio
+    colonna = 0
     while (colonna < larghezza-raggio) :
         if(nero[riga][colonna] == 255):
             area = nero[int(riga - raggio):int(riga+raggio),int(colonna-raggio):int(colonna+raggio)]
