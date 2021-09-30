@@ -60,17 +60,18 @@ print(db.labels_)
 
 cv.imwrite('output.png', db.labels_)
 
-dbscan = np.zeros((altezza, larghezza))
+dbscan = np.zeros((altezza, larghezza,3))
+#dbscan = cv.cvtColor(dbscan,cv.COLOR_GRAY2BGR)
 contatore = 0
 n_cluster = 0
-grandezza_p_medi = db.labels_[grandezza-1]+1 #ultimo cluster presente in db 
+grandezza_p_medi = (db.labels_[grandezza-1]+1) #ultimo cluster presente in db 
 print('grandezza '+ str(grandezza_p_medi))
 p_medi = np.ndarray(grandezza_p_medi*2)
 puntatore = 0
 
-print('grandezza_p_medi'+str(grandezza_p_medi))
 
-while (contatore < grandezza and n_cluster <= grandezza_p_medi):
+
+while (contatore < grandezza and n_cluster < grandezza_p_medi):
     n_elementi_cluster = 0
     #while (n_cluster <= grandezza_p_medi): #contare quanti elementi ci sono nel cluster
     while(db.labels_[contatore] == n_cluster):
@@ -87,10 +88,10 @@ while (contatore < grandezza and n_cluster <= grandezza_p_medi):
     #print('-------------')
     #print(n_elementi_cluster)
     while(copia_corners < (n_elementi_cluster)):
-        print('ciao')
+        #print('ciao')
         media_punti[copia_corners] = x[int(puntatore+copia_corners)]
-        print(x[int(puntatore+copia_corners)])
-        print('media punti' + str(media_punti))
+        #print(x[int(puntatore+copia_corners)])
+        #print('media punti' + str(media_punti))
         '''
         p_medi[n_cluster] = average(media_punti)
         print(p_medi[n_cluster])'''
@@ -112,6 +113,10 @@ while (contatore < grandezza and n_cluster <= grandezza_p_medi):
     media_y=(average(media_punti_y)).astype(np.uint8)
 #   tmp=np.ndarray([[media_x][media_y]]).reshape(2,2) #errore
     print(p_medi.shape)
+    print("Siamo al cluster "+str(n_cluster))
+    print('grandezza_p_medi'+str(grandezza_p_medi))
+    print('grandezza '+ str(db.labels_[grandezza-1]))
+    print(db.labels_)
     p_medi[n_cluster*2-1]=media_y #=[int(average(media_punti_x))int(average(media_punti_x))]
     p_medi[n_cluster*2]=media_x
 
@@ -124,7 +129,7 @@ while (contatore < grandezza and n_cluster <= grandezza_p_medi):
 c = 0
 
 while(c < p_medi.size):
-    dbscan[c+1][c] = [0,255,0]
+    dbscan[int(p_medi[c+1])][int(p_medi[c])] = [0,255,0]
     c = c+2
 
 cv.imwrite('dbscan.png',dbscan)
