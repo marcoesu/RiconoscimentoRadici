@@ -8,7 +8,7 @@ from skimage.morphology import thin # pip install scikit-image
 #(Potrebbe essere necessario aggiungere una cartella al PATH di sistema, vedere output installazione)
 
 def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
-    #altezza, larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
+    altezza, larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
     r=0     #contatore di riga
     c=0     # indice di taglio
     nastro = True   # booleano che indica la presenza di nastro in cima al cartoncino
@@ -27,7 +27,7 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
     if c!=0:  # se sono state oscurate parti dell'immagine:
                 print("Nastro rimosso.")
                 cv.imwrite(str(nomefile +' pre-rimozione.jpg'), image) #salvataggio su disco dell'immagine prima della rimozione del nastro
-                image = image[c+30:altezza,0:larghezza]   # definizione della nuova area contenente le radici
+                image = image[c+25:altezza,0:larghezza]   # definizione della nuova area contenente le radici
                 #cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici) #salvataggio dell'immagine ritagliata su disco
                 return image
     elif c==0:  #oppure se c è uguale a 0 significa che non vi è alcun nastro nell'area considerata.
@@ -52,8 +52,13 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             image = cv.imread(f1)   #lettura dell'immagine dal disco
             print(str('Scansione del file '+nomefile+' in corso.'))
             altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
-            #img_focus = image[(int(altezza/5)):(int(altezza*0.95)),int((larghezza/9)):int((larghezza*0.9))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
-            img_focus = image[1200:5700,450:3600] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
+        
+            #Zona di ritaglio per escludere la zona delle luci e altri elementi di disturbo
+            ritaglio_y1 = 1200      #(int(altezza/5)
+            ritaglio_x1 = 450       #int((larghezza/9)
+            ritaglio_y2 = 5700      #(int(altezza*0.95)
+            ritaglio_x2 = 3600      #(int(larghezza*0.9))
+            img_focus = image[ritaglio_y1:ritaglio_y2,ritaglio_x1:ritaglio_x2] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
             altezza, larghezza = img_focus.shape[:2]    # dimensioni dell'immagine leggermente ritagliata
 
             img_hsv = cv.cvtColor(img_focus, cv.COLOR_BGR2HSV) #conversione da BGR (Blu, Verde, Rosso) ad HSV
