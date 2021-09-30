@@ -27,6 +27,8 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
     if c!=0:  # se sono state oscurate parti dell'immagine:
                 print("Nastro rimosso.")
                  #salvataggio su disco dell'immagine prima della rimozione del nastro
+                image=cv.cvtColor(image,cv.COLOR_GRAY2BGR)
+                image[c:c+1]
                 image = image[c-300:c+300,lim_x1:lim_x2]   # definizione della nuova area contenente le radici
                 cv.imwrite(str(nomefile +' pre-rimozione.jpg'), image)
                 #cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici) #salvataggio dell'immagine ritagliata su disco
