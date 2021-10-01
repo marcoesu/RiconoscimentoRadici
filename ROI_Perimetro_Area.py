@@ -70,7 +70,7 @@ def CalcoloCampione (image):
         
         coord = corners.ravel()
 
-        if((coord[2]-coord[0]) <= 75 or (coord[3]-coord[1])<= 75):
+        if((coord[2]-coord[0]) <= 75 and (coord[3]-coord[1])<= 75):
             distanza = math.sqrt((coord[2]-coord[0])*(coord[2]-coord[0]) + (coord[3]-coord[1])*(coord[3]-coord[1]))
             lato_px=int(distanza/math.sqrt(2)) 
             return lato_px,True #ritorna il lato del quadratino in pixel
