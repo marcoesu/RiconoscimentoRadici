@@ -39,7 +39,18 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
 
     #funzione che trova un insieme di quadratini, analizza due quadratini vicini per calcolare la loro distanza
     # e restituisce il numero di pixel corrispondente a 5 mm
-def CalcoloCampione (img):
+def CalcoloCampione (image):
+
+    img_focus = image[(int(altezza/5)):(int(altezza*0.95)),int((larghezza/9)):int((larghezza*0.9))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
+
+    hsv=cv.cvtColor(img_focus, cv.COLOR_BGR2HSV) #Conversione di img_focus in HSV
+
+    #Range per selezionare il colore verde con la maschera
+    lower_green = np.array([0, 0, 0])          
+    upper_green = np.array([150,100,100])
+
+    img = cv.inRange(hsv, lower_green, upper_green) # Applicazione della maschera
+
     #operazione di closing
 
     kernel = np.ones((3,3),np.uint8)
@@ -99,6 +110,10 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             print(str('Scansione del file '+nomefile+' in corso.'))
             altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
         
+
+            #Calcolo del fattore di conversione da utilizzare per passare da pixel a mm
+            lato_pixel = CalcoloCampione(image)
+
             #Zona di ritaglio per escludere la zona delle luci e altri elementi di disturbo
             ritaglio_y1 = 1200      #(int(altezza/5)
             ritaglio_x1 = 450       #int((larghezza/9)
@@ -115,11 +130,6 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             lower_green = np.array([30, 80, 30])          
             upper_green = np.array([150,255,150])                       
             mask = cv.inRange(img_hsv, lower_green, upper_green) # Applicazione della maschera
-
-
-            #Calcolo del fattore di conversione da utilizzare per passare da pixel a mm
-            lato_pixel = CalcoloCampione(mask)
-
 
             #Ricerca dei contorni utlizzando la maschera
             ret, thresh = cv.threshold(mask, 127, 255, cv.THRESH_BINARY) # necessita di un'immagine in scala di grigi che viene convertita in un'immagine binaria
