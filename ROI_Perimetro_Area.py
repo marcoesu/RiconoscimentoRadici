@@ -41,14 +41,15 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
     # e restituisce il numero di pixel corrispondente a 5 mm
 def CalcoloCampione (img):
     #operazione di closing
+
     kernel = np.ones((3,3),np.uint8)
     img = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) #closing
+    img_inv=cv.bitwise_not(img)
 
-    img=cv.bitwise_not(img)
 
     size = (2,3) #(2,3)
 
-    ret, corners = cv.findCirclesGrid(img, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
+    ret, corners = cv.findCirclesGrid(img_inv, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
 
     # in corners, abbiamo prima i valori di x e poi i valori di y
 
