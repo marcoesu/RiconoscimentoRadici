@@ -8,6 +8,8 @@ from skimage.morphology import thin # pip install scikit-image
 import math
 #(Potrebbe essere necessario aggiungere una cartella al PATH di sistema, vedere output installazione)
 
+lato_mm = 10
+
 def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
     altezza, larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
     r=0     #contatore di riga
@@ -37,7 +39,7 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
 
     #funzione che trova un insieme di quadratini, analizza due quadratini vicini per calcolare la loro distanza
     # e restituisce il numero di pixel corrispondente a 5 mm
-def CalcoloCampione (img, lato_mm):
+def CalcoloCampione (img):
     #operazione di closing
     kernel = np.ones((3,3),np.uint8)
     img = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) #closing
@@ -50,16 +52,24 @@ def CalcoloCampione (img, lato_mm):
 
     # in corners, abbiamo prima i valori di x e poi i valori di y
 
+    print(corners)
+
+    coord = corners.ravel()
+
+    '''
     x = []
     y = []
     
-    for corner in corners:
-        corner_x, corner_y = corner.ravel()
+    for i in corners:
+        corner_x, corner_y = i.ravel()
         x.append(corner_x)
         y.append(corner_y)
 
     distanza = math.sqrt((x[1]-x[0])*(x[1]-x[0]) + (y[1]-y[0])*(y[1]-y[0]))
-    lato_px=int(distanza/math.sqrt(2))    
+    lato_px=int(distanza/math.sqrt(2))''' 
+
+    distanza = math.sqrt((coord[2]-coord[0])*(coord[2]-coord[0]) + (coord[3]-coord[1])*(coord[3]-coord[1]))
+    lato_px=int(distanza/math.sqrt(2))   
 
     #cv.drawChessboardCorners(img_focus, size , corners, ret)
 
@@ -70,13 +80,14 @@ path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
 
 file = open("perimetro_area.csv","w") #apertura del file per scrivere al suo interno il nome del file, perimetro e area
+file.write("nome_file;perimetro_px;perimetro_mm;area_pixel;area_mm;lato_pixel" + "\n")
 
 scansione = os.scandir() #scansione dei file all'interno della cartella path
 for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
     if sottocartella.is_dir():  #controllo se il file in esame è una cartella
         subpath = str(path + r'/'+ sottocartella.name) # Percorso della sottocartella
         os.chdir(subpath)   # passaggio alla sottocartella in esame
-        data_path = os.path.join(subpath,'*[0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
+        data_path = os.path.join(subpath,'[A-Z]_*[0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
                                                     # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da una precedente esecuzione del programma
                                                     # non vengono utilizzati come input dal programma.                                                    
         files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*[0-9].jpg -> lista di elementi con estensione jpg che hanno una cifra come ultimo carattere del nome)
@@ -106,7 +117,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
 
             #Calcolo del fattore di conversione da utilizzare per passare da pixel a mm
-            px2mm = CalcoloCampione(mask)
+            lato_pixel = CalcoloCampione(mask)
 
 
             #Ricerca dei contorni utlizzando la maschera
@@ -155,14 +166,11 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
 
 
-            file.write("nome_file;perimetro_px;perimetro_mm;area_pixel;area_mm" + "\n" + str(nomefile) + ";" + str(perimetro_pixel) + ";" + str(perimetro_mm) + ";" +
-                        str(area_pixel) + ";" + str(area_mm)+ "\n") #scrittura su file
+            file.write(str(nomefile) + ";" + str(perimetro_pixel) + ";" + str(perimetro_mm) + ";" + str(area_pixel) + ";" + str(area_mm) + ";" + str(lato_pixel) + "\n") #scrittura su file
 
 
             '''file.write("[\n nome file: " + str(nomefile) + ",\n perimetro in pixel: " + str(perimetro_pixel) + ",\n perimetro in millimetri: " + str(perimetro_millimetri) 
                         + ",\n area in pixel: " + str(area_pixel) + ",\n area in millimetri: " + str(area_millimetri) +"\n]") #scrittura su file'''
-
-            file.write("\n")
 
             # Salvataggio delle immagini elaborate su disco
             cv.imwrite(str(nomefile +'_focus.jpg'), img_focus)
