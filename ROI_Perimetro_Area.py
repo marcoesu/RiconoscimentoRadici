@@ -5,6 +5,7 @@ import os # utilizzata per effettuare operazioni sulle cartelle
 import glob
 import shutil #permette di effettuare operazioni su file
 from skimage.morphology import thin # pip install scikit-image 
+import math
 #(Potrebbe essere necessario aggiungere una cartella al PATH di sistema, vedere output installazione)
 
 def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
@@ -34,10 +35,41 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
         print("Non è stato trovato alcun nastro.")
         return image
 
+    #funzione che trova un insieme di quadratini, analizza due quadratini vicini per calcolare la loro distanza
+    # e restituisce il numero di pixel corrispondente a 5 mm
+def CalcoloCampione (img, lato_mm):
+    #operazione di closing
+    kernel = np.ones((3,3),np.uint8)
+    img = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) #closing
+
+    img=cv.bitwise_not(img)
+
+    size = (2,3) #(2,3)
+
+    ret, corners = cv.findCirclesGrid(img, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
+
+    # in corners, abbiamo prima i valori di x e poi i valori di y
+
+    x = []
+    y = []
+    
+    for corner in corners:
+        corner_x, corner_y = corner.ravel()
+        x.append(corner_x)
+        y.append(corner_y)
+
+    distanza = math.sqrt((x[1]-x[0])*(x[1]-x[0]) + (y[1]-y[0])*(y[1]-y[0]))
+    lato_px=int(distanza/math.sqrt(2))    
+
+    #cv.drawChessboardCorners(img_focus, size , corners, ret)
+
+    return lato_px #ritorna il lato del quadratino in pixel
+        
+
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
 
-file = open("perimetro_area.txt","w") #apertura del file per scrivere al suo interno il nome del file, perimetro e area
+file = open("perimetro_area.csv","w") #apertura del file per scrivere al suo interno il nome del file, perimetro e area
 
 scansione = os.scandir() #scansione dei file all'interno della cartella path
 for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
@@ -72,6 +104,11 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             upper_green = np.array([150,255,150])                       
             mask = cv.inRange(img_hsv, lower_green, upper_green) # Applicazione della maschera
 
+
+            #Calcolo del fattore di conversione da utilizzare per passare da pixel a mm
+            px2mm = CalcoloCampione(mask)
+
+
             #Ricerca dei contorni utlizzando la maschera
             ret, thresh = cv.threshold(mask, 127, 255, cv.THRESH_BINARY) # necessita di un'immagine in scala di grigi che viene convertita in un'immagine binaria
             contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE) #Ricerca dei contorni utlizzando le informazioni ottenute attraverso il tresholding
@@ -85,13 +122,21 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             cartoncino = img_focus[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x,:] #Ritaglio del cartoncino
           
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per evidenziare le radici
+
+
+
             mask_inv = mask_inv[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
 
             #Rimozione dell'eventuale nastro che tiene fissata la pianta al cartoncino
             mask_inv = RimozioneNastro(mask_inv,subpath,nomefile)
 
             area_pixel = np.count_nonzero(mask_inv) # calcolo dell'area in pixel            
-            #area_millimetri = int((area_pixel//60)*(5 * np.sqrt(2))) #calcolo dell'area in millimetri
+            
+            
+            
+            area_mm = area_pixel #calcolo dell'area in millimetri
+
+
 
             kernel = np.ones((5,5),np.uint8) # definizione del kernel
             erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
@@ -104,9 +149,15 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             print('Thinning eseguito.')
 
             perimetro_pixel = np.count_nonzero(thinning) #calcolo del perimetro in pixel
-            #perimetro_millimetri = int((perimetro_pixel//60)*(5 * np.sqrt(2))) #calcolo del perimetro in millimetri
 
-            file.write("[\n nome file: " + str(nomefile) + ",\n perimetro in pixel: " + str(perimetro_pixel) + ",\n area in pixel: " + str(area_pixel)+"\n]") #scrittura su file
+
+            perimetro_mm = perimetro_pixel #calcolo del perimetro in millimetri
+
+
+
+            file.write("nome_file;perimetro_px;perimetro_mm;area_pixel;area_mm" + "\n" + str(nomefile) + ";" + str(perimetro_pixel) + ";" + str(perimetro_mm) + ";" +
+                        str(area_pixel) + ";" + str(area_mm)+ "\n") #scrittura su file
+
 
             '''file.write("[\n nome file: " + str(nomefile) + ",\n perimetro in pixel: " + str(perimetro_pixel) + ",\n perimetro in millimetri: " + str(perimetro_millimetri) 
                         + ",\n area in pixel: " + str(area_pixel) + ",\n area in millimetri: " + str(area_millimetri) +"\n]") #scrittura su file'''
