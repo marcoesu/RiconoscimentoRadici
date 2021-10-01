@@ -42,7 +42,7 @@ nero = nero.astype(np.uint8) #i punti riportati da harris sono in subpixel,
 
 #cv.imwrite('nero.png', nero)
 
-raggio=3        # definizione della semilunghezza del lato l'area di lavoro
+raggio=2        # definizione della semilunghezza del lato l'area di lavoro
 #definizione zona
 #grandezza=np.count
 #x= np.ndarray(int(np))
