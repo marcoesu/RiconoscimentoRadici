@@ -8,7 +8,7 @@ from skimage.morphology import thin # pip install scikit-image
 import math
 #(Potrebbe essere necessario aggiungere una cartella al PATH di sistema, vedere output installazione)
 
-lato_mm = 10
+lato_mm = 5 # lato in mm del quadratino della scacchiera
 
 def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
     altezza, larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
@@ -57,42 +57,31 @@ def CalcoloCampione (image):
     img = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) #closing
     img_inv=cv.bitwise_not(img)
 
-
-    size = (2,3) #(2,3)
-
-    ret, corners = cv.findCirclesGrid(img_inv, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
+    size = (2,3) 
 
     # in corners, abbiamo prima i valori di x e poi i valori di y
+    # andiamo a trovare i punti sulla scacchiera in modo da poter poi calcolarne la distanza
+    ret, corners = cv.findCirclesGrid(img_inv, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
 
-    print(corners)
-
-    coord = corners.ravel()
-
-    '''
-    x = []
-    y = []
-    
-    for i in corners:
-        corner_x, corner_y = i.ravel()
-        x.append(corner_x)
-        y.append(corner_y)
-
-    distanza = math.sqrt((x[1]-x[0])*(x[1]-x[0]) + (y[1]-y[0])*(y[1]-y[0]))
-    lato_px=int(distanza/math.sqrt(2))''' 
-
-    distanza = math.sqrt((coord[2]-coord[0])*(coord[2]-coord[0]) + (coord[3]-coord[1])*(coord[3]-coord[1]))
-    lato_px=int(distanza/math.sqrt(2))   
-
-    #cv.drawChessboardCorners(img_focus, size , corners, ret)
-
-    return lato_px #ritorna il lato del quadratino in pixel
+    # si crea un array coord in cui andiamo a inserire tutti gli elementi presenti in corners e andiamo a calcolare
+    # la distanza tra i primi due punti
+    # ritorna 1 se non vengono trovati punti sulla scacchiera
+    try :
         
+        coord = corners.ravel()
+
+        if((coord[2]-coord[0]) <= 75 or (coord[3]-coord[1])<= 75):
+            distanza = math.sqrt((coord[2]-coord[0])*(coord[2]-coord[0]) + (coord[3]-coord[1])*(coord[3]-coord[1]))
+            lato_px=int(distanza/math.sqrt(2)) 
+            return lato_px,True #ritorna il lato del quadratino in pixel
+        else: return 0,True   
+    except : return 0,False
 
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
 
-file = open("perimetro_area.csv","w") #apertura del file per scrivere al suo interno il nome del file, perimetro e area
-file.write("nome_file;perimetro_px;perimetro_mm;area_pixel;area_mm;lato_pixel" + "\n")
+file = open("risultati.csv","w") #apertura del file per scrivere al suo interno il nome del file, perimetro e area
+file.write("soggetto;data_ora_scatto;perimetro_px;perimetro_mm;area_pixel;area_mm;lato_pixel" + "\n") # definizione del'intestazione delle colonne
 
 scansione = os.scandir() #scansione dei file all'interno della cartella path
 for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
@@ -111,8 +100,8 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
         
 
-            #Calcolo del fattore di conversione da utilizzare per passare da pixel a mm
-            lato_pixel = CalcoloCampione(image)
+            #assegnazione del valore in pixel relativo al lato del quadrato nella scacchiera e relativa variabile booleana
+            lato_pixel, flag = CalcoloCampione(image)
 
             #Zona di ritaglio per escludere la zona delle luci e altri elementi di disturbo
             ritaglio_y1 = 1200      #(int(altezza/5)
@@ -145,21 +134,16 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
           
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per evidenziare le radici
 
-
-
             mask_inv = mask_inv[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
 
             #Rimozione dell'eventuale nastro che tiene fissata la pianta al cartoncino
             mask_inv = RimozioneNastro(mask_inv,subpath,nomefile)
 
-            area_pixel = np.count_nonzero(mask_inv) # calcolo dell'area in pixel            
-            
-            
-            
-            area_mm = area_pixel #calcolo dell'area in millimetri
+            area_mm = 0 
+            perimetro_mm = 0
 
-
-
+            area_pixel = np.count_nonzero(mask_inv) # calcolo dell'area in pixel          
+            
             kernel = np.ones((5,5),np.uint8) # definizione del kernel
             erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
             erosion=erosion.astype(bool) # Conversione in binario in modo da avere
@@ -172,16 +156,19 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             perimetro_pixel = np.count_nonzero(thinning) #calcolo del perimetro in pixel
 
+            # se il valore del lato del quadratino è diverso da zero allora calcoliamo perimetro e area in millimetri
+            if(lato_pixel != 0):
+                perimetro_mm = int((perimetro_pixel/lato_pixel)*lato_mm) #calcolo del perimetro in millimetri
+                area_mm = int((area_pixel/(lato_pixel*lato_pixel))*lato_mm) #calcolo dell'area in millimetri
+            elif(lato_pixel == 0 and flag == True):
+                print("I punti trovati non sono adatti per la conversione in millimetri.") #punti troppo distanti
+            else:
+                print("Non sono stati trovati punti per la conversione in millimetri.") #punti non trovati
 
-            perimetro_mm = perimetro_pixel #calcolo del perimetro in millimetri
+            cartella, data = nomefile.split(" ",1) #divisione del nome del file in cartella e data
 
-
-
-            file.write(str(nomefile) + ";" + str(perimetro_pixel) + ";" + str(perimetro_mm) + ";" + str(area_pixel) + ";" + str(area_mm) + ";" + str(lato_pixel) + "\n") #scrittura su file
-
-
-            '''file.write("[\n nome file: " + str(nomefile) + ",\n perimetro in pixel: " + str(perimetro_pixel) + ",\n perimetro in millimetri: " + str(perimetro_millimetri) 
-                        + ",\n area in pixel: " + str(area_pixel) + ",\n area in millimetri: " + str(area_millimetri) +"\n]") #scrittura su file'''
+            #scrittura su file
+            file.write(str(cartella) + ";" + str(data) + ";" + str(perimetro_pixel) + ";" + str(perimetro_mm) + ";" + str(area_pixel) + ";" + str(area_mm) + ";" + str(lato_pixel) + "\n") 
 
             # Salvataggio delle immagini elaborate su disco
             cv.imwrite(str(nomefile +'_focus.jpg'), img_focus)
