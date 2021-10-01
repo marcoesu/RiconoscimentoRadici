@@ -6,12 +6,6 @@ import matplotlib.pyplot as plt
 import math
 from sklearn.cluster import DBSCAN #pip install scikit-learn
 
-'''
-path = os.path.abspath(os.path.dirname(__file__)) #Salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
-os.chdir(path)  # Cambio della cartella attuale nella cartella in cui si trova il file .py
-img = cv.imread(r'prova_dbscan.jpg',0) #lettura immagine
-'''
-
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
 
@@ -40,6 +34,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             img = cv.cvtColor(img, cv.COLOR_GRAY2BGR,dstCn=3) # conversione da bianco e nero a RGB
 
+            clustering_rgb=img.copy() # In alternativa clustering_rgb = np.zeros((altezza,larghezza,3)).astype(np.uint8)
             img_harris=img.copy()
 
             # Threshold for an optimal value, it may vary depending on the image.
@@ -57,9 +52,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                                         # approssimando la posizione dei punti ottenuti con l'algoritmo di harris
                                         # in pixel
 
-            #cv.imwrite('nero.png', nero)
-
-            raggio=2        # definizione della semilunghezza del lato l'area di lavoro
+            raggio=2  # definizione della semilunghezza del lato l'area di lavoro
             #definizione zona
             #grandezza=np.count
             #x= np.ndarray(int(np))
@@ -96,15 +89,13 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                     colonna = colonna+1
                 riga = riga+1 
 
-            #clustering = cv.cvtColor(clustering, cv.COLOR_GRAY2BGR) # conversione da bianco e nero a RGB
-            clustering_rgb = np.zeros((altezza,larghezza,3)).astype(np.uint8)
 
             row=0
             while (row < altezza):
                 col=0
                 while (col < larghezza):
                     if clustering[row,col] == [255]:
-                        clustering_rgb[row,col]=[0,0,255]
+                        clustering_rgb[row,col]=[0,255,0]   
                         confronto[row,col]=[0,255,0]
                     col+=1
                 row+=1
