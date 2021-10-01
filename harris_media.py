@@ -21,12 +21,17 @@ harris = cv.cornerHarris(img,2,3,0.04) #applicazione dell'algoritmo di harris
 #harris = cv.dilate(harris,None) # ingrandisce il corner
 #dst = dst.astype(np.uint8)
 
-img = cv.cvtColor(img, cv.COLOR_GRAY2BGR) # conversione da bianco e nero a RGB
+img = cv.cvtColor(img, cv.COLOR_GRAY2BGR,dstCn=3) # conversione da bianco e nero a RGB
+
+img_harris=img.copy()
 
 # Threshold for an optimal value, it may vary depending on the image.
-img[harris>0.02*harris.max()]=[0,0,255] #disegna i cerchi rossi sullo scheletro
+img_harris[harris>0.02*harris.max()]=[0,0,255] #disegna i cerchi rossi sullo scheletro
+cv.imwrite("harris.png", img_harris)
 
-altezza, larghezza = harris.shape[:2] #dimensioni dell'immagine ottenuta con harris
+confronto = img_harris.copy()
+
+altezza, larghezza = img_harris.shape[:2] #dimensioni dell'immagine ottenuta con harris
 nero = np.zeros((altezza,larghezza,1)) #crea un'immagine completamente nera
 nero[harris>0.02*harris.max()]=[255] #disegna i punti di interesse trovati con harris su un'immagine nera
 
@@ -35,15 +40,14 @@ nero = nero.astype(np.uint8) #i punti riportati da harris sono in subpixel,
                             # approssimando la posizione dei punti ottenuti con l'algoritmo di harris
                             # in pixel
 
-cv.imwrite('nero.png', nero)
+#cv.imwrite('nero.png', nero)
 
-raggio=3        # definizione del raggio dell'area di lavoro
+raggio=2        # definizione della semilunghezza del lato l'area di lavoro
 #definizione zona
 #grandezza=np.count
 #x= np.ndarray(int(np))
-clustering = np.zeros(nero.shape)
+clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint8)
 riga = raggio
-
 while (riga < altezza-raggio) : 
     colonna = raggio
     while (colonna < larghezza-raggio) :
@@ -66,16 +70,31 @@ while (riga < altezza-raggio) :
                     riga_area+=1
                 media_x=(sum(media_punti_x)/n_pixel).astype(np.uint8)
                 media_y=(sum(media_punti_y)/n_pixel).astype(np.uint8)
-                #area[0:raggio*2+1,0:raggio*2+1]=[0]
-                
+                area[0:raggio*2,0:raggio*2]=[0]                
                 area[(media_y),int(media_x)]=[255]
+                
                 nero[riga - raggio:riga+raggio,colonna-raggio:colonna+raggio]=area
                 clustering[riga - raggio:riga+raggio,colonna-raggio:colonna+raggio]=area
             
         colonna = colonna+1
     riga = riga+1 
 
-cv.imwrite("clustering.png",bianco)
+#clustering = cv.cvtColor(clustering, cv.COLOR_GRAY2BGR) # conversione da bianco e nero a RGB
+clustering_rgb = np.zeros((altezza,larghezza,3)).astype(np.uint8)
+
+row=0
+while (row < altezza):
+    col=0
+    while (col < larghezza):
+        if clustering[row,col] == [255]:
+            clustering_rgb[row,col]=[0,0,255]
+            confronto[row,col]=[0,255,0]
+        col+=1
+    row+=1
+
+cv.imwrite("clustering.png",clustering)
+cv.imwrite("clustering_rgb.png",clustering_rgb)
+cv.imwrite("harris_c.png",confronto)
 
 
 
