@@ -41,7 +41,7 @@ raggio=3        # definizione del raggio dell'area di lavoro
 #definizione zona
 #grandezza=np.count
 #x= np.ndarray(int(np))
-bianco = np.zeros(nero.shape)
+clustering = np.zeros(nero.shape)
 riga = raggio
 
 while (riga < altezza-raggio) : 
@@ -66,17 +66,16 @@ while (riga < altezza-raggio) :
                     riga_area+=1
                 media_x=(sum(media_punti_x)/n_pixel).astype(np.uint8)
                 media_y=(sum(media_punti_y)/n_pixel).astype(np.uint8)
-                area[0:raggio*2+1,0:raggio*2+1]=[0]
+                #area[0:raggio*2+1,0:raggio*2+1]=[0]
                 
                 area[(media_y),int(media_x)]=[255]
                 nero[riga - raggio:riga+raggio,colonna-raggio:colonna+raggio]=area
-                bianco[riga - raggio:riga+raggio,colonna-raggio:colonna+raggio]=area
+                clustering[riga - raggio:riga+raggio,colonna-raggio:colonna+raggio]=area
             
         colonna = colonna+1
     riga = riga+1 
 
-cv.imwrite("nuovi_punti.png",nero)
-cv.imwrite("bianco.png",bianco)
+cv.imwrite("clustering.png",bianco)
 
 
 
