@@ -36,10 +36,8 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
     elif c==0:  #oppure se c è uguale a 0 significa che non vi è alcun nastro nell'area considerata.
         print("Non è stato trovato alcun nastro.")
         return image
-
-    #funzione che trova un insieme di quadratini, analizza due quadratini vicini per calcolare la loro distanza
-    # e restituisce il numero di pixel corrispondente a 5 mm
-def CalcoloCampione (image):
+    
+def CalcoloCampione (image): # e restituisce il numero di pixel corrispondente a 5 mm
 
     img_focus = image[(int(altezza/5)):(int(altezza*0.95)),int((larghezza/9)):int((larghezza*0.9))] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
 
@@ -51,7 +49,7 @@ def CalcoloCampione (image):
 
     img = cv.inRange(hsv, lower_green, upper_green) # Applicazione della maschera
 
-    #operazione di closing
+    #operazione di closing per rendere i quadratini della scacchiera più definiti
 
     kernel = np.ones((3,3),np.uint8)
     img = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) #closing
@@ -67,13 +65,13 @@ def CalcoloCampione (image):
     # ritorna 0 se non vengono trovati punti sulla scacchiera o se questi sono troppo distanti tra loro
     try :
         
-        coord = corners.ravel()
+        coord = corners.ravel() # inseriamo tutti i valori contetuti nella matrice corners nell'array coord
 
         #se i punti non sono troppo distanti tra loro
         if((coord[2]-coord[0]) <= 75 and (coord[3]-coord[1])<= 75):
             #calcolo della distanza tra due punti sqrt((x2-x1)^2 + (y2-y1)^2)
             distanza = math.sqrt((coord[2]-coord[0])*(coord[2]-coord[0]) + (coord[3]-coord[1])*(coord[3]-coord[1])) 
-            lato_px=int(distanza/math.sqrt(2)) #per trovare il lato in pixel dividiamo la distanza per la radice di 2
+            lato_px=float(distanza/math.sqrt(2)).__round__(3) #per trovare il lato in pixel dividiamo la distanza per la radice di 2
             return lato_px,True #ritorna il lato del quadratino in pixel
         else: return 0,True 
     except : return 0,False
@@ -159,8 +157,8 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             # se il valore del lato del quadratino è diverso da zero allora calcoliamo perimetro e area in millimetri
             if(lato_pixel != 0):
-                perimetro_mm = int((perimetro_pixel/lato_pixel)*lato_mm) #calcolo del perimetro in millimetri
-                area_mm = int((area_pixel/(lato_pixel*lato_pixel))*lato_mm) #calcolo dell'area in millimetri
+                perimetro_mm = ((float(perimetro_pixel)/float(lato_pixel))*float(lato_mm)).__round__(3) #calcolo del perimetro in millimetri
+                area_mm = ((float(area_pixel)/float(lato_pixel*lato_pixel))*float(lato_mm)).__round__(3) #calcolo dell'area in millimetri
             elif(lato_pixel == 0 and flag == True):
                 print("I punti trovati non sono adatti per la conversione in millimetri.") #punti troppo distanti
             else:

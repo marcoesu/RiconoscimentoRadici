@@ -111,18 +111,18 @@ while (contatore < grandezza and n_cluster < grandezza_p_medi):
     while(copia_corners < (n_elementi_cluster)):
         #print('ciao')
         media_punti[copia_corners] = x[int(puntatore+copia_corners)]
-<<<<<<< HEAD
+
         print(x[int(puntatore+copia_corners)])
         print('media punti' + str(media_punti))
         
-=======
+
         #print(x[int(puntatore+copia_corners)])
         #print('media punti' + str(media_punti))
-        '''
->>>>>>> 5ced20c05ef0347f7f625e7aaf751c4dd5a24cb5
-        p_medi[n_cluster] = average(media_punti)
-        print(p_medi[n_cluster])
-        copia_corners +=1
+        
+
+    p_medi[n_cluster] = average(media_punti)
+    print(p_medi[n_cluster])
+    copia_corners +=1
     
     media_punti_x = np.ndarray(n_elementi_cluster)
     media_punti_y = np.ndarray(n_elementi_cluster)
