@@ -52,7 +52,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                                         # approssimando la posizione dei punti ottenuti con l'algoritmo di harris
                                         # in pixel
 
-            p=5  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
+            p=4  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
 
             #############
             #     p     #
@@ -105,15 +105,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             # Disegno dei punti ottenuti dal clustering sullo scheletro di partenza e su un'immagine dello scheletro popolata con i punti trovati 
             # con'algoritmo di harris per il confronto fra Harris e il clustering effettuato.
             #Scorrimento dell'immagine in bianco e nero contenente i punti medi ottenuti dall'operazione di clustering
-            print("Disegno i punti...")
-            last_white_pixel=0
-            
+            print("Disegno i punti...")          
             row=0
             while (row < altezza):
                 col=0
                 while (col < larghezza):
                     if clustering[row,col] == [255]: # quando si incontra un punto bianco, ovvero un punto medio
-                        last_white_pixel = row
                         clustering_rgb[row,col]=[0,255,0]   # viene riportato, con il colore verde, sullo scheletro iniziale
                         confronto[row,col]=[0,255,0]        # e, sempre con il colore verde sull'immagine su cui sono presenti scheletro 
                                                             # e il risultato con l'algoritmo di Harris (punti in rosso)
@@ -125,7 +122,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             cv.imwrite(nomefile+" clustering.png",clustering_rgb)
             cv.imwrite(nomefile+" harris_c.png",confronto)
             print(str('Analisi dello scheletro di '+nomefile+' completata.'),flush=True)
-            print('-----------------------------------------------------------------')
+            print('---------------------------------------------------------------')
 
 
 
