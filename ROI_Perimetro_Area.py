@@ -65,7 +65,7 @@ def CalcoloCampione (image):
 
     # si crea un array coord in cui andiamo a inserire tutti gli elementi presenti in corners e andiamo a calcolare
     # la distanza tra i primi due punti
-    # ritorna 1 se non vengono trovati punti sulla scacchiera
+    # ritorna 0 se non vengono trovati punti sulla scacchiera o se questi sono troppo distanti tra loro
     try :
         
         coord = corners.ravel()
@@ -74,7 +74,7 @@ def CalcoloCampione (image):
             distanza = math.sqrt((coord[2]-coord[0])*(coord[2]-coord[0]) + (coord[3]-coord[1])*(coord[3]-coord[1]))
             lato_px=int(distanza/math.sqrt(2)) 
             return lato_px,True #ritorna il lato del quadratino in pixel
-        else: return 0,True   
+        else: return 0,True 
     except : return 0,False
 
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
