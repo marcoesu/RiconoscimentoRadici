@@ -2,9 +2,8 @@ import numpy as np
 import cv2 as cv
 import glob
 import os
-import matplotlib.pyplot as plt
-import math
-from sklearn.cluster import DBSCAN #pip install scikit-learn
+
+from numpy.core.numeric import count_nonzero
 
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
@@ -41,7 +40,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             img_harris[harris>0.02*harris.max()]=[0,0,255] #disegna i cerchi rossi sullo scheletro
             cv.imwrite(nomefile+" harris.png", img_harris)
 
-            confronto = img_harris.copy()
+            confronto = img_harris.copy() # creazione di una copia dello scheletro iniziale
 
             altezza, larghezza = img_harris.shape[:2] #dimensioni dell'immagine ottenuta con harris
             nero = np.zeros((altezza,larghezza,1)) #crea un'immagine completamente nera
@@ -61,12 +60,15 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             #############
             
             # Clustering: si analizzano i punti ottenuti con l'algoritmo di Harris e gli agglomerati costituiti da punti molto vicini vengono sostituiti dal loro punto medio.
+            # L'algoritmo definisce una sottoarea di lavoro, utilizzando il parametro p, ogniqualvolta che si incontra un punto bianco.
+            # Vengono contati i pixel bianchi e ne vangono salvate le coordinate. Si procede poi a calcolare il punto medio se nell'area vi sono più punti bianchi.
+            # Viene colorata di nero l'area sull'immagine di partenza (Harris) corrispondente alla area di lavoro corrente e viene disegnato il punto medio su un'immagine nera.
             clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint8) # creazione di un'immagine nera usata per il salvataggio dei punti medi
-            riga = p
+            riga = p # il contatore di riga viene posto uguale al parametro per far sì che la sottoarea di lavoro non oltrepassi i bordi dell'immagine.
             while (riga < altezza-p): 
                 colonna = p
                 while (colonna < larghezza-p):
-                    if(nero[riga][colonna] == 255):
+                    if(nero[riga][colonna] == 255): #definizione
                         area = nero[int(riga - p):int(riga+p),int(colonna-p):int(colonna+p)]
                         n_pixel = np.count_nonzero(area)
                         if (n_pixel>1):
@@ -87,27 +89,48 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                             media_y=(sum(media_punti_y)/n_pixel).astype(np.uint8)
                             area[0:p*2,0:p*2]=[0]                
                             area[(media_y),int(media_x)]=[255]
-                            
                             nero[riga - p:riga+p,colonna-p:colonna+p]=area
                             clustering[riga - p:riga+p,colonna-p:colonna+p]=area
+                        elif(n_pixel == 1):  #Se è stato trovato un solo pixel nell'area, questo viene salvato direttamente sull'immagine di uscita.
+                            clustering[riga][colonna]=[255]
+
                         
                     colonna = colonna+1
                 riga = riga+1 
 
-
+            # Disegno dei punti ottenuti dal clustering sullo scheletro di partenza e su un'immagine dello scheletro popolata con i punti trovati 
+            # con'algoritmo di harris per il confronto fra Harris e il clustering effettuato.
+            #Scorrimento dell'immagine in bianco e nero contenente i punti medi ottenuti dall'operazione di clustering
             row=0
             while (row < altezza):
                 col=0
                 while (col < larghezza):
-                    if clustering[row,col] == [255]:
-                        clustering_rgb[row,col]=[0,255,0]   
-                        confronto[row,col]=[0,255,0]
+                    if clustering[row,col] == [255]: # quando si incontra un punto bianco, ovvero un punto medio
+                        clustering_rgb[row,col]=[0,255,0]   # viene riportato, con il colore verde, sullo scheletro iniziale
+                        confronto[row,col]=[0,255,0]        # e, sempre con il colore verde sull'immagine su cui sono presenti scheletro 
+                                                            # e il risultato con l'algoritmo di Harris (punti in rosso)
                     col+=1
                 row+=1
 
-            #cv.imwrite(nomefile+" clustering.png",clustering)
             cv.imwrite(nomefile+" clustering_rgb.png",clustering_rgb)
             cv.imwrite(nomefile+" harris_c.png",confronto)
+
+
+
+
+            '''            # Rimozione di punti isolati 
+            row=1
+            while (row < altezza-1):
+                col=1
+                while (col < larghezza-1):
+                    if clustering_rgb[row,col] == [[0][255][0]]:
+                        area=clustering_rgb[row-1:row+1,col-1:col+1]
+                        n_pixel=count_nonzero(area)
+                        if(n_pixel==1):
+                            clustering_rgb[row-1:row+1,col-1:col+1]=[255,0,0]
+                col+=1    
+            row+=1'''
+            
 
 
 
