@@ -13,18 +13,20 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
     if sottocartella.is_dir():  #controllo se il file in esame è una cartella
         subpath = str(path + r'/'+ sottocartella.name) # Percorso della sottocartella
         os.chdir(subpath)   # passaggio alla sottocartella in esame
-        data_path = os.path.join(subpath,'*_thinning.jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
+        data_path = os.path.join(subpath,'*_thinning.[j|p][p|n]g')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
                                                     # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da una precedente esecuzione del programma
                                                     # non vengono utilizzati come input dal programma.                                                    
         files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*[0-9].jpg -> lista di elementi con estensione jpg che hanno una cifra come ultimo carattere del nome)
         for f1 in files:    #Ciclo per scorrere tutte le immagini delle sottocartelle 
             nomefile = os.path.basename(f1)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
-            nomefile,ext = os.path.splitext(nomefile) #rimozione dell'estensione ".JPG" dal nome del file
+            nomefile = (nomefile.rsplit("_",1))[0] # nome del file
             img = cv.imread(f1,0)   #lettura dell'immagine contenente lo scheletro dal disco
-            print(str('Scansione del file '+nomefile+' in corso.'))
-            scheletro=img.copy()
-            #gray = np.float32(img) 
-            harris = cv.cornerHarris(img,2,3,0.04) #applicazione dell'algoritmo di harris
+            print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
+            
+            scheletro=img.copy() # copia dell'immagine contentente lo scheletro
+
+            gray = np.float32(img)
+            harris = cv.cornerHarris(gray,2,3,0.04) #applicazione dell'algoritmo di harris
 
             #result is dilated for marking the corners, not important
             #harris = cv.dilate(harris,None) # ingrandisce il corner
@@ -62,7 +64,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             # L'algoritmo definisce una sottoarea di lavoro, utilizzando il parametro p, ogniqualvolta che si incontra un punto bianco.
             # Vengono contati i pixel bianchi e ne vangono salvate le coordinate. Si procede poi a calcolare il punto medio se nell'area vi sono più punti bianchi.
             # Viene colorata di nero l'area sull'immagine di partenza (Harris) corrispondente alla area di lavoro corrente e viene disegnato il punto medio su un'immagine nera.
-            clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint8) # creazione di un'immagine nera usata per il salvataggio dei punti medi
+            clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint16) # creazione di un'immagine nera usata per il salvataggio dei punti medi
             print("Clustering...")
             riga = p # il contatore di riga viene posto uguale al parametro per far sì che la sottoarea di lavoro non oltrepassi i bordi dell'immagine.
             while (riga < altezza-p): 
@@ -82,7 +84,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                                 colonna_area = colonna-p
                                 #pixel = 0
                                 while (colonna_area<colonna+p+1 and pixel<n_pixel):
-                                    if((int(nero[riga_area,colonna_area])==255)):
+                                    if(int(nero[riga_area,colonna_area])==255):
                                         media_punti_y[pixel]=riga_area
                                         media_punti_x[pixel]=colonna_area
                                         pixel+=1 # incremento del contatore di pixel
@@ -103,7 +105,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             # Disegno dei punti ottenuti dal clustering sullo scheletro di partenza e su un'immagine dello scheletro popolata con i punti trovati 
             # con'algoritmo di harris per il confronto fra Harris e il clustering effettuato.
             #Scorrimento dell'immagine in bianco e nero contenente i punti medi ottenuti dall'operazione di clustering
-            print("Disegno i punti ")
+            print("Disegno i punti...")
             last_white_pixel=0
             
             row=0
@@ -113,36 +115,17 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                     if clustering[row,col] == [255]: # quando si incontra un punto bianco, ovvero un punto medio
                         last_white_pixel = row
                         clustering_rgb[row,col]=[0,255,0]   # viene riportato, con il colore verde, sullo scheletro iniziale
-                        #confronto[row,col]=[0,255,0]        # e, sempre con il colore verde sull'immagine su cui sono presenti scheletro 
+                        confronto[row,col]=[0,255,0]        # e, sempre con il colore verde sull'immagine su cui sono presenti scheletro 
                                                             # e il risultato con l'algoritmo di Harris (punti in rosso)
                     col+=1  # incremento del contatore della colonna
                 row+=1  # incremento del contatore della riga
 
-            cv.imwrite(nomefile+" clustering_rgb.png",clustering_rgb)
-            # Rimozione di punti isolati
-            '''
-            print("Rimozione punti isolati") 
-            punti_isolati=cv.bitwise_or(clustering,scheletro)
-            cv.imwrite(nomefile+" pi.png",punti_isolati)
-            row=1
-            while (row <= last_white_pixel):
-                col=1
-                while (col <= larghezza-1):
-                    #print(clustering_rgb[row,col])
-                    #print(str(row)+" "+str(col))
-                    if punti_isolati[row,col] == 255:
-                        area=punti_isolati[row-1:row+2,col-1:col+2]
-                        print(area.shape)
-                        n_pixel=count_nonzero(area)
-                        if(n_pixel==1):
-                            clustering_rgb[row,col]=[255,0,0]
-                    col+=1    
-                row+=1
-'''
-            #Salvataggio su disco
-            #cv.imwrite(nomefile+" clustering_rgb_senza_pi.png",clustering_rgb)
-            #cv.imwrite(nomefile+" harris_c.png",confronto)
-            print(str(nomefile+' scansionato.'))
+             #Salvataggio su disco
+            print("Salvataggio su disco...")
+            cv.imwrite(nomefile+" clustering.png",clustering_rgb)
+            cv.imwrite(nomefile+" harris_c.png",confronto)
+            print(str('Analisi dello scheletro di '+nomefile+' completata.'),flush=True)
+            print('-----------------------------------------------------------------')
 
 
 
