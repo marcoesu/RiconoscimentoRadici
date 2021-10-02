@@ -63,16 +63,17 @@ def CalcoloCampione (image):
     # andiamo a trovare i punti sulla scacchiera in modo da poter poi calcolarne la distanza
     ret, corners = cv.findCirclesGrid(img_inv, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
 
-    # si crea un array coord in cui andiamo a inserire tutti gli elementi presenti in corners e andiamo a calcolare
-    # la distanza tra i primi due punti
+    # si crea un array coord in cui andiamo a inserire tutti gli elementi presenti in corners e andiamo a calcolare la distanza tra i primi due punti
     # ritorna 0 se non vengono trovati punti sulla scacchiera o se questi sono troppo distanti tra loro
     try :
         
         coord = corners.ravel()
 
+        #se i punti non sono troppo distanti tra loro
         if((coord[2]-coord[0]) <= 75 and (coord[3]-coord[1])<= 75):
-            distanza = math.sqrt((coord[2]-coord[0])*(coord[2]-coord[0]) + (coord[3]-coord[1])*(coord[3]-coord[1]))
-            lato_px=int(distanza/math.sqrt(2)) 
+            #calcolo della distanza tra due punti sqrt((x2-x1)^2 + (y2-y1)^2)
+            distanza = math.sqrt((coord[2]-coord[0])*(coord[2]-coord[0]) + (coord[3]-coord[1])*(coord[3]-coord[1])) 
+            lato_px=int(distanza/math.sqrt(2)) #per trovare il lato in pixel dividiamo la distanza per la radice di 2
             return lato_px,True #ritorna il lato del quadratino in pixel
         else: return 0,True 
     except : return 0,False
@@ -99,8 +100,8 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             print(str('Scansione del file '+nomefile+' in corso.'))
             altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
         
-
-            #assegnazione del valore in pixel relativo al lato del quadrato nella scacchiera e relativa variabile booleana
+            # assegnazione del valore in pixel relativo al lato del quadrato nella scacchiera e 
+            # del valore booleano utilizzato per verificare la presenza o meno dei punti
             lato_pixel, flag = CalcoloCampione(image)
 
             #Zona di ritaglio per escludere la zona delle luci e altri elementi di disturbo
@@ -142,7 +143,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             area_mm = 0 
             perimetro_mm = 0
 
-            area_pixel = np.count_nonzero(mask_inv) # calcolo dell'area in pixel          
+            area_pixel = np.count_nonzero(mask_inv) # calcolo dell'area in pixel contando il numero di punti bianchi        
             
             kernel = np.ones((5,5),np.uint8) # definizione del kernel
             erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
@@ -154,7 +155,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             thinning = (thin(erosion)*255).astype(np.uint8) #applicazione della funzione thinning
             print('Thinning eseguito.')
 
-            perimetro_pixel = np.count_nonzero(thinning) #calcolo del perimetro in pixel
+            perimetro_pixel = np.count_nonzero(thinning) #calcolo del perimetro in pixel contando il numero di punti bianchi
 
             # se il valore del lato del quadratino è diverso da zero allora calcoliamo perimetro e area in millimetri
             if(lato_pixel != 0):
