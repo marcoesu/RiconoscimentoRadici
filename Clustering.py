@@ -52,17 +52,22 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                                         # approssimando la posizione dei punti ottenuti con l'algoritmo di harris
                                         # in pixel
 
-            raggio=2  # definizione della semilunghezza del lato l'area di lavoro
-            #definizione zona
-            #grandezza=np.count
-            #x= np.ndarray(int(np))
-            clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint8)
-            riga = raggio
-            while (riga < altezza-raggio) : 
-                colonna = raggio
-                while (colonna < larghezza-raggio) :
+            p=2  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
+
+            #############
+            #     p     #
+            #  p  O  p  #
+            #     p     #
+            #############
+            
+            # Clustering: si analizzano i punti ottenuti con l'algoritmo di Harris e gli agglomerati costituiti da punti molto vicini vengono sostituiti dal loro punto medio.
+            clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint8) # creazione di un'immagine nera usata per il salvataggio dei punti medi
+            riga = p
+            while (riga < altezza-p): 
+                colonna = p
+                while (colonna < larghezza-p):
                     if(nero[riga][colonna] == 255):
-                        area = nero[int(riga - raggio):int(riga+raggio),int(colonna-raggio):int(colonna+raggio)]
+                        area = nero[int(riga - p):int(riga+p),int(colonna-p):int(colonna+p)]
                         n_pixel = np.count_nonzero(area)
                         if (n_pixel>1):
                             media_punti_x=np.ndarray(n_pixel)
@@ -80,11 +85,11 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                                 riga_area+=1
                             media_x=(sum(media_punti_x)/n_pixel).astype(np.uint8)
                             media_y=(sum(media_punti_y)/n_pixel).astype(np.uint8)
-                            area[0:raggio*2,0:raggio*2]=[0]                
+                            area[0:p*2,0:p*2]=[0]                
                             area[(media_y),int(media_x)]=[255]
                             
-                            nero[riga - raggio:riga+raggio,colonna-raggio:colonna+raggio]=area
-                            clustering[riga - raggio:riga+raggio,colonna-raggio:colonna+raggio]=area
+                            nero[riga - p:riga+p,colonna-p:colonna+p]=area
+                            clustering[riga - p:riga+p,colonna-p:colonna+p]=area
                         
                     colonna = colonna+1
                 riga = riga+1 
