@@ -20,10 +20,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
         for f1 in files:    #Ciclo per scorrere tutte le immagini delle sottocartelle 
             nomefile = os.path.basename(f1)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
             nomefile,ext = os.path.splitext(nomefile) #rimozione dell'estensione ".JPG" dal nome del file
-            img = cv.imread(f1,0)   #lettura dell'immagine dal disco
+            img = cv.imread(f1,0)   #lettura dell'immagine contenente lo scheletro dal disco
             print(str('Scansione del file '+nomefile+' in corso.'))
-            # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
-
+            scheletro=img.copy()
             #gray = np.float32(img) 
             harris = cv.cornerHarris(img,2,3,0.04) #applicazione dell'algoritmo di harris
 
@@ -33,12 +32,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             img = cv.cvtColor(img, cv.COLOR_GRAY2BGR,dstCn=3) # conversione da bianco e nero a RGB
 
-            clustering_rgb=img.copy() # In alternativa clustering_rgb = np.zeros((altezza,larghezza,3)).astype(np.uint8)
+            clustering_rgb=img.copy() #creazione di una copia dello scheletro # In alternativa clustering_rgb = np.zeros((altezza,larghezza,3)).astype(np.uint8)
             img_harris=img.copy()
 
             # Threshold for an optimal value, it may vary depending on the image.
-            img_harris[harris>0.02*harris.max()]=[0,0,255] #disegna i cerchi rossi sullo scheletro
-            cv.imwrite(nomefile+" harris.png", img_harris)
+            img_harris[harris>0.02*harris.max()]=[0,0,255] # disegna i cerchi rossi sullo scheletro
+            cv.imwrite(nomefile+" harris.png", img_harris) # salvataggio su disco
 
             confronto = img_harris.copy() # creazione di una copia dello scheletro iniziale
 
@@ -46,12 +45,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             nero = np.zeros((altezza,larghezza,1)) #crea un'immagine completamente nera
             nero[harris>0.02*harris.max()]=[255] #disegna i punti di interesse trovati con harris su un'immagine nera
 
-            nero = nero.astype(np.uint8) #i punti riportati da harris sono in subpixel,
+            #nero = nero.astype(np.uint16) #i punti riportati da harris sono in subpixel,
                                         # andiamo quindi a convertire l'immagine in un array di interi
                                         # approssimando la posizione dei punti ottenuti con l'algoritmo di harris
                                         # in pixel
 
-            p=2  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
+            p=5  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
 
             #############
             #     p     #
@@ -64,72 +63,90 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             # Vengono contati i pixel bianchi e ne vangono salvate le coordinate. Si procede poi a calcolare il punto medio se nell'area vi sono più punti bianchi.
             # Viene colorata di nero l'area sull'immagine di partenza (Harris) corrispondente alla area di lavoro corrente e viene disegnato il punto medio su un'immagine nera.
             clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint8) # creazione di un'immagine nera usata per il salvataggio dei punti medi
+            print("Clustering...")
             riga = p # il contatore di riga viene posto uguale al parametro per far sì che la sottoarea di lavoro non oltrepassi i bordi dell'immagine.
             while (riga < altezza-p): 
                 colonna = p
                 while (colonna < larghezza-p):
                     if(nero[riga][colonna] == 255): #definizione
-                        area = nero[int(riga - p):int(riga+p),int(colonna-p):int(colonna+p)]
+                        area = nero[int(riga - p):int(riga+p+1),int(colonna-p):int(colonna+p+1)]
                         n_pixel = np.count_nonzero(area)
                         if (n_pixel>1):
-                            media_punti_x=np.ndarray(n_pixel)
-                            media_punti_y=np.ndarray(n_pixel)
-                            riga_area = 0
-                            while (riga_area<area.shape[0]):
-                                colonna_area = 0
-                                pixel = 0
-                                while (colonna_area<area.shape[1] and pixel<n_pixel):
-                                    if(area[riga_area,colonna_area]==[255]):
+                            # allocazione degli array che conterranno rispettivamente ascisse e ordinate dei punti dell'area di lavoro
+                            media_punti_x=np.zeros((n_pixel,1),dtype=np.uint32)
+                            media_punti_y=np.zeros((n_pixel,1),dtype=np.uint32)
+                            # Scorrimento dell'area di lavoro
+                            pixel = 0
+                            riga_area = riga-p
+                            while (riga_area<riga+p+1):
+                                colonna_area = colonna-p
+                                #pixel = 0
+                                while (colonna_area<colonna+p+1 and pixel<n_pixel):
+                                    if((int(nero[riga_area,colonna_area])==255)):
                                         media_punti_y[pixel]=riga_area
                                         media_punti_x[pixel]=colonna_area
-                                        pixel+=1
-                                    colonna_area+=1
-                                riga_area+=1
-                            media_x=(sum(media_punti_x)/n_pixel).astype(np.uint8)
-                            media_y=(sum(media_punti_y)/n_pixel).astype(np.uint8)
-                            area[0:p*2,0:p*2]=[0]                
-                            area[(media_y),int(media_x)]=[255]
-                            nero[riga - p:riga+p,colonna-p:colonna+p]=area
-                            clustering[riga - p:riga+p,colonna-p:colonna+p]=area
+                                        pixel+=1 # incremento del contatore di pixel
+                                    colonna_area+=1 # incremento del contatore delle colonne
+                                riga_area+=1 # incremento del contatore delle righe
+                            media_x=(sum(media_punti_x)/n_pixel).astype(np.uint32) # media delle ascisse
+                            media_y=(sum(media_punti_y)/n_pixel).astype(np.uint32) # media delle ascisse
+                            # cancellazione dell'area analizzata
+                            #area[0:p*2,0:p*2]=[0]
+                            nero[riga - p:riga+p+1,colonna-p:colonna+p+1]=0
+                            clustering[(media_y),(media_x)]=[255]
                         elif(n_pixel == 1):  #Se è stato trovato un solo pixel nell'area, questo viene salvato direttamente sull'immagine di uscita.
-                            clustering[riga][colonna]=[255]
-
-                        
+                            nero[riga][colonna] = [0]
+                            clustering[riga][colonna]=[255]    
                     colonna = colonna+1
-                riga = riga+1 
-
+                riga = riga+1
+            print("Clustering completato.")
             # Disegno dei punti ottenuti dal clustering sullo scheletro di partenza e su un'immagine dello scheletro popolata con i punti trovati 
             # con'algoritmo di harris per il confronto fra Harris e il clustering effettuato.
             #Scorrimento dell'immagine in bianco e nero contenente i punti medi ottenuti dall'operazione di clustering
+            print("Disegno i punti ")
+            last_white_pixel=0
+            
             row=0
             while (row < altezza):
                 col=0
                 while (col < larghezza):
                     if clustering[row,col] == [255]: # quando si incontra un punto bianco, ovvero un punto medio
+                        last_white_pixel = row
                         clustering_rgb[row,col]=[0,255,0]   # viene riportato, con il colore verde, sullo scheletro iniziale
-                        confronto[row,col]=[0,255,0]        # e, sempre con il colore verde sull'immagine su cui sono presenti scheletro 
+                        #confronto[row,col]=[0,255,0]        # e, sempre con il colore verde sull'immagine su cui sono presenti scheletro 
                                                             # e il risultato con l'algoritmo di Harris (punti in rosso)
-                    col+=1
-                row+=1
+                    col+=1  # incremento del contatore della colonna
+                row+=1  # incremento del contatore della riga
 
             cv.imwrite(nomefile+" clustering_rgb.png",clustering_rgb)
-            cv.imwrite(nomefile+" harris_c.png",confronto)
-
-
-
-
-            '''            # Rimozione di punti isolati 
+            # Rimozione di punti isolati
+            '''
+            print("Rimozione punti isolati") 
+            punti_isolati=cv.bitwise_or(clustering,scheletro)
+            cv.imwrite(nomefile+" pi.png",punti_isolati)
             row=1
-            while (row < altezza-1):
+            while (row <= last_white_pixel):
                 col=1
-                while (col < larghezza-1):
-                    if clustering_rgb[row,col] == [[0][255][0]]:
-                        area=clustering_rgb[row-1:row+1,col-1:col+1]
+                while (col <= larghezza-1):
+                    #print(clustering_rgb[row,col])
+                    #print(str(row)+" "+str(col))
+                    if punti_isolati[row,col] == 255:
+                        area=punti_isolati[row-1:row+2,col-1:col+2]
+                        print(area.shape)
                         n_pixel=count_nonzero(area)
                         if(n_pixel==1):
-                            clustering_rgb[row-1:row+1,col-1:col+1]=[255,0,0]
-                col+=1    
-            row+=1'''
+                            clustering_rgb[row,col]=[255,0,0]
+                    col+=1    
+                row+=1
+'''
+            #Salvataggio su disco
+            #cv.imwrite(nomefile+" clustering_rgb_senza_pi.png",clustering_rgb)
+            #cv.imwrite(nomefile+" harris_c.png",confronto)
+            print(str(nomefile+' scansionato.'))
+
+
+
+
             
 
 
