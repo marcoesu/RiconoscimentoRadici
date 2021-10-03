@@ -23,13 +23,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             
             scheletro=img.copy() # copia dell'immagine contentente lo scheletro
 
-            #gray = np.float32(img)
             harris = cv.cornerHarris(img,2,3,0.04) # applicazione dell'algoritmo di Harris
 
             img = cv.cvtColor(img, cv.COLOR_GRAY2BGR,dstCn=3) # conversione da bianco e nero a RGB
 
-            clustering_rgb=img.copy() #creazione di una copia dello scheletro # In alternativa clustering_rgb = np.zeros((altezza,larghezza,3)).astype(np.uint8)
-            img_harris=img.copy()
+            img_harris=img.copy() #creazione di una copia dello scheletro su cui verrà disegnato l'output dell'algoritmo di Harris
+            clustering_rgb=img.copy() #creazione di una copia dello scheletro su cui verrà disegnato il risultato del clustering
 
             img_harris[harris>0.02*harris.max()]=[0,0,255] # disegna i punti rossi, ottenuti con l'algoritmo di Harris, sullo scheletro
             cv.imwrite(nomefile+" harris.png", img_harris) # salvataggio su disco
