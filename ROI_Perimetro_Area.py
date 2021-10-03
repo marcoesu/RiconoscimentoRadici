@@ -29,7 +29,6 @@ def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del 
         r=r+1 # incremento del contatore di riga
     if c!=0:  # se sono state oscurate parti dell'immagine:
                 print("Nastro rimosso.")
-                cv.imwrite(str(nomefile +' pre-rimozione.jpg'), image) #salvataggio su disco dell'immagine prima della rimozione del nastro
                 image = image[c+25:altezza,0:larghezza]   # definizione della nuova area contenente le radici
                 #cv.imwrite(cartella + r'/' + nomefile +'_ritaglio_radici.jpg', ritaglio_radici) #salvataggio dell'immagine ritagliata su disco
                 return image
@@ -61,12 +60,10 @@ def CalcoloCampione (image): # e restituisce il numero di pixel corrispondente a
     # andiamo a trovare i punti sulla scacchiera in modo da poter poi calcolarne la distanza
     ret, corners = cv.findCirclesGrid(img_inv, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
 
-    # si crea un array coord in cui andiamo a inserire tutti gli elementi presenti in corners e andiamo a calcolare la distanza tra i primi due punti
+    # si crea un array (coord) in cui andiamo a inserire tutti gli elementi presenti in corners e andiamo a calcolare la distanza tra i primi due punti
     # ritorna 0 se non vengono trovati punti sulla scacchiera o se questi sono troppo distanti tra loro
-    try :
-        
+    try :    
         coord = corners.ravel() # inseriamo tutti i valori contetuti nella matrice corners nell'array coord
-
         #se i punti non sono troppo distanti tra loro
         if((coord[2]-coord[0]) <= 75 and (coord[3]-coord[1])<= 75):
             #calcolo della distanza tra due punti sqrt((x2-x1)^2 + (y2-y1)^2)
@@ -87,16 +84,15 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
     if sottocartella.is_dir():  #controllo se il file in esame è una cartella
         subpath = str(path + r'/'+ sottocartella.name) # Percorso della sottocartella
         os.chdir(subpath)   # passaggio alla sottocartella in esame
-        data_path = os.path.join(subpath,'[A-Z]_*[0-9].jpg')   # I file prodotti dall'esecuzione sono file png, a differenza dei campioni che sono immagini jpg.
-                                                    # In questo modo, se il programma viene eseguito più volte, i file salvati su disco da una precedente esecuzione del programma
-                                                    # non vengono utilizzati come input dal programma.                                                    
+        data_path = os.path.join(subpath,'[A-Z]_*[0-9].[j|p][p|n]g') # Il programma prende in ingresso solamente i file campione, ignorando i file prodotti da precedenti esecuzioni.
+                                                                                                    
         files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*[0-9].jpg -> lista di elementi con estensione jpg che hanno una cifra come ultimo carattere del nome)
         for f1 in files:    #Ciclo per scorrere tutte le immagini delle sottocartelle 
             nomefile = os.path.basename(f1)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
             nomefile,ext = os.path.splitext(nomefile) #rimozione dell'estensione ".JPG" dal nome del file
             image = cv.imread(f1)   #lettura dell'immagine dal disco
             print(str('Scansione del file '+nomefile+' in corso.'))
-            altezza, larghezza = image.shape[:2]      # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
+            altezza, larghezza = image.shape[:2]    # salvataggio delle dimensioni dell'immagine (prende solo i primi 2 valori della tupla shape, il terzo contiene i colori)
         
             # assegnazione del valore in pixel relativo al lato del quadrato nella scacchiera e 
             # del valore booleano utilizzato per verificare la presenza o meno dei punti
@@ -150,7 +146,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             #Thinning
             print('Thinning dell\'immagine...')
-            thinning = (thin(erosion)*255).astype(np.uint8) #applicazione della funzione thinning
+            thinning = (thin(erosion)*255).astype(np.uint16) #applicazione della funzione thinning
             print('Thinning eseguito.')
 
             perimetro_pixel = np.count_nonzero(thinning) #calcolo del perimetro in pixel contando il numero di punti bianchi
@@ -166,21 +162,19 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             cartella, data = nomefile.split(" ",1) #divisione del nome del file in cartella e data
 
-            #scrittura su file
+            #Scrittura su file csv
             file.write(str(cartella) + ";" + str(data) + ";" + str(perimetro_pixel) + ";" + str(perimetro_mm) + ";" + str(area_pixel) + ";" + str(area_mm) + ";" + str(lato_pixel) + "\n") 
 
             # Salvataggio delle immagini elaborate su disco
-            cv.imwrite(str(nomefile +'_focus.jpg'), img_focus)
-            cv.imwrite(str(nomefile +'_maschera_invertita.jpg'), mask_inv)
-            cv.imwrite(str(nomefile +'_thinning.jpg'), thinning)
-            #cv.imwrite(str(nomefile +'_erosion.jpg'), erosion)
-            cv.imwrite(str(nomefile +'_cartoncino.jpg'), cartoncino)
+            cv.imwrite(str(nomefile +' focus.jpg'), img_focus)
+            cv.imwrite(str(nomefile +' maschera_invertita.jpg'), mask_inv)
+            cv.imwrite(str(nomefile +' thinning.jpg'), thinning)
+            cv.imwrite(str(nomefile +' cartoncino.jpg'), cartoncino)
 
-            #stampa nel terminale del file in esame
+            #Stampa nel terminale del file in esame
             print(str('File '+nomefile+' scansionato.'))
 
-        #stampa nel terminale della cartella in esame 
-
+        #Stampa nel terminale della cartella in esame 
         print(str('Cartella '+sottocartella.name+' scansionata.'))
 
 print(str('Processo terminato'))       
