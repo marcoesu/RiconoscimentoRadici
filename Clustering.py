@@ -22,9 +22,14 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
             
             scheletro=img.copy() # copia dell'immagine contentente lo scheletro
+            
 
-            harris = cv.cornerHarris(img,2,3,0.08) # applicazione dell'algoritmo di Harris
+            # applicazione dell'algoritmo di Harris per l'individuazione delle giunzioni e la fine delle radici
+            # prende in ingresso come parametri: l'immagine su cui effettuiamo l'operazione, la dimensione dell'intorno per il rilevamento degli angoli,
+            # il parametro di apertura della derivata di Sobel utilizzato e il parametro libero nell'equazione dell'Harris detector
+            harris = cv.cornerHarris(img,2,3,0.08) 
             #harris = cv.cornerHarris(img,2,3,0.04) # applicazione dell'algoritmo di Harris
+
             img = cv.cvtColor(img, cv.COLOR_GRAY2BGR,dstCn=3) # conversione da bianco e nero a RGB
 
             img_harris=img.copy() #creazione di una copia dello scheletro su cui verrà disegnato l'output dell'algoritmo di Harris
