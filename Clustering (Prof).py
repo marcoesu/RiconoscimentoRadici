@@ -52,7 +52,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                                         # approssimando la posizione dei punti ottenuti con l'algoritmo di harris
                                         # in pixel
 
-            p=4  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
+            p=5  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
 
             #############
             #     p     #
@@ -66,13 +66,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             # Viene colorata di nero l'area sull'immagine di partenza (Harris) corrispondente alla area di lavoro corrente e viene disegnato il punto medio su un'immagine nera.
             clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint16) # creazione di un'immagine nera usata per il salvataggio dei punti medi
             print("Clustering...")
-            riga = 0 # il contatore di riga viene posto uguale al parametro per far sì che la sottoarea di lavoro non oltrepassi i bordi dell'immagine.
+            riga = p # il contatore di riga viene posto uguale al parametro per far sì che la sottoarea di lavoro non oltrepassi i bordi dell'immagine.
             while (riga < altezza-p): 
                 colonna = p
-                y = riga if (riga>=p) else p
                 while (colonna < larghezza-p):
                     if(nero[riga][colonna] == 255): #definizione
-                        area = nero[int(y - p):int(y+p+1),int(colonna-p):int(colonna+p+1)]
+                        area = nero[int(riga - p):int(riga+p+1),int(colonna-p):int(colonna+p+1)]
                         n_pixel = np.count_nonzero(area)
                         if (n_pixel>1):
                             # allocazione degli array che conterranno rispettivamente ascisse e ordinate dei punti dell'area di lavoro
@@ -80,8 +79,8 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                             media_punti_y=np.zeros((n_pixel,1),dtype=np.uint32)
                             # Scorrimento dell'area di lavoro
                             pixel = 0
-                            riga_area = y-p
-                            while (riga_area<y+p+1):
+                            riga_area = riga-p
+                            while (riga_area<riga+p+1):
                                 colonna_area = colonna-p
                                 #pixel = 0
                                 while (colonna_area<colonna+p+1 and pixel<n_pixel):
@@ -95,7 +94,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                             media_y=(sum(media_punti_y)/n_pixel).astype(np.uint32) # media delle ascisse
                             # cancellazione dell'area analizzata
                             #area[0:p*2,0:p*2]=[0]
-                            nero[y - p:y+p+1,colonna-p:colonna+p+1]=0
+                            nero[riga - p:riga+p+1,colonna-p:colonna+p+1]=0
                             clustering[(media_y),(media_x)]=[255]
                         elif(n_pixel == 1):  #Se è stato trovato un solo pixel nell'area, questo viene salvato direttamente sull'immagine di uscita.
                             nero[riga][colonna] = [0]
