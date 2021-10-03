@@ -3,8 +3,6 @@ import cv2 as cv
 import glob
 import os
 
-from numpy.core.numeric import count_nonzero
-
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
 
@@ -19,14 +17,14 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
         files = glob.glob(data_path) #converte data path in un output Unix-like (ls | grep jpg) (*[0-9].jpg -> lista di elementi con estensione jpg che hanno una cifra come ultimo carattere del nome)
         for f1 in files:    #Ciclo per scorrere tutte le immagini delle sottocartelle 
             nomefile = os.path.basename(f1)    #nome dell'immagine in esame, utilizzato poi per rinominare il risultato delle operazioni
-            nomefile = (nomefile.rsplit("_",1))[0] # nome del file
+            nomefile = (nomefile.rsplit(" ",1))[0] # nome del file
             img = cv.imread(f1,0)   #lettura dell'immagine contenente lo scheletro dal disco
             print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
             
             scheletro=img.copy() # copia dell'immagine contentente lo scheletro
 
-            gray = np.float32(img)
-            harris = cv.cornerHarris(gray,2,3,0.04) #applicazione dell'algoritmo di harris
+            #gray = np.float32(img)
+            harris = cv.cornerHarris(img,2,3,0.04) #applicazione dell'algoritmo di harris
 
             #result is dilated for marking the corners, not important
             #harris = cv.dilate(harris,None) # ingrandisce il corner
