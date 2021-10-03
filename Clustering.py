@@ -24,8 +24,8 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             scheletro=img.copy() # copia dell'immagine contentente lo scheletro
             
 
-            # applicazione dell'algoritmo di Harris per l'individuazione delle giunzioni e la fine delle radici
-            # prende in ingresso come parametri: l'immagine su cui effettuiamo l'operazione, la dimensione dell'intorno per il rilevamento degli angoli,
+            # applicazione dell'algoritmo di Harris per l'individuazione delle giunzioni e le terminazioni delle radici
+            # L'algoritmo prende in ingresso come parametri: l'immagine su cui effettuiamo l'operazione, la dimensione dell'intorno per il rilevamento degli angoli,
             # il parametro di apertura della derivata di Sobel utilizzato e il parametro libero nell'equazione dell'Harris detector
             harris = cv.cornerHarris(img,2,3,0.08) 
             #harris = cv.cornerHarris(img,2,3,0.04) # applicazione dell'algoritmo di Harris
@@ -44,7 +44,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             nero = np.zeros((altezza,larghezza,1)) #crea un'immagine completamente nera
             nero[harris>0.02*harris.max()]=[255] #disegna i punti di interesse trovati con harris su un'immagine nera
 
-            p=4  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
+            p=5  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
 
             #############
             #     p     #
@@ -103,7 +103,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             while (row < altezza):
                 col=0
                 while (col < larghezza):
-                    if clustering[row,col] == [255]: # quando si incontra un punto bianco, ovvero un punto medio
+                    if clustering[row,col] == 255: # quando si incontra un punto bianco, ovvero un punto medio      ==[255]
                         clustering_rgb[row,col]=[0,255,0]   # viene riportato, con il colore verde, sullo scheletro iniziale
                         confronto[row,col]=[0,255,0]        # e, sempre con il colore verde sull'immagine su cui sono presenti scheletro 
                                                             # e il risultato con l'algoritmo di Harris (punti in rosso)
