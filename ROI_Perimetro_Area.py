@@ -1,10 +1,8 @@
-import sys
 import cv2 as cv
 import numpy as np
 from pyzbar.pyzbar import decode #decodifica del QR
 import os # utilizzata per effettuare operazioni sulle cartelle
 import glob
-import shutil #permette di effettuare operazioni su file
 from skimage.morphology import thin # pip install scikit-image 
 import math
 #(Potrebbe essere necessario aggiungere una cartella al PATH di sistema, vedere output installazione)
