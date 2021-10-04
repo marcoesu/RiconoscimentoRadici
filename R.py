@@ -1,4 +1,3 @@
-import sys
 import cv2 as cv
 import numpy as np
 from pyzbar.pyzbar import decode #decodifica del QR
@@ -8,7 +7,6 @@ import shutil #permette di effettuare operazioni su file
 from skimage.morphology import thin # pip install scikit-image 
 import math
 #(Potrebbe essere necessario aggiungere una cartella al PATH di sistema, vedere output installazione)
-#np.set_printoptions(threshold=sys.maxsize)
 
 lato_mm = 5 # lato in mm del quadratino della scacchiera
 
@@ -143,17 +141,14 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             
             kernel = np.ones((5,5),np.uint8) # definizione del kernel
             erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
-            #erosion=erosion.astype(bool) # Conversione in binario in modo da avere
+            erosion=erosion.astype(bool) # Conversione in binario in modo da avere
                                          # 1 per valori > 0 in BGR, 0 per valori uguali a zero in BGR
 
             #Thinning
             print('Thinning dell\'immagine...')
-            #file1 = open("ciao.txt","w")
-            #thinning = (thin(erosion)*255).astype(np.uint16) #applicazione della funzione thinning
-            thinning = (thin(erosion)*255).astype(np.uint8) #applicazione della funzione thinning
-            #thinning = thinning*255
+            thinning = (thin(erosion)*255).astype(np.uint16) #applicazione della funzione thinning
             print('Thinning eseguito.')
-            #file1.write(str(thinning))
+
             perimetro_pixel = np.count_nonzero(thinning) #calcolo del perimetro in pixel contando il numero di punti bianchi
 
             # se il valore del lato del quadratino è diverso da zero allora calcoliamo perimetro e area in millimetri
@@ -171,9 +166,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             file.write(str(cartella) + ";" + str(data) + ";" + str(perimetro_pixel) + ";" + str(perimetro_mm) + ";" + str(area_pixel) + ";" + str(area_mm) + ";" + str(lato_pixel) + "\n") 
 
             # Salvataggio delle immagini elaborate su disco
-            cv.imwrite(str(nomefile +' focus.png'), img_focus)
+            cv.imwrite(str(nomefile +' focus.jpg'), img_focus)
             cv.imwrite(str(nomefile +' maschera_invertita.jpg'), mask_inv)
-            cv.imwrite(str(nomefile +' thinning.png'), thinning)
+            cv.imwrite(str(nomefile +' thinning.jpg'), thinning)
             cv.imwrite(str(nomefile +' cartoncino.jpg'), cartoncino)
 
             #Stampa nel terminale del file in esame

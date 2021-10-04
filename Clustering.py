@@ -56,7 +56,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             # L'algoritmo definisce una sottoarea di lavoro, utilizzando il parametro p, ogniqualvolta che si incontra un punto bianco.
             # Vengono contati i pixel bianchi e ne vangono salvate le coordinate. Si procede poi a calcolare il punto medio se nell'area vi sono più punti bianchi.
             # Viene colorata di nero l'area sull'immagine di partenza (Harris) corrispondente alla area di lavoro corrente e viene disegnato il punto medio su un'immagine nera.
-            clustering = np.zeros((altezza, larghezza, 1)).astype(np.uint16) # creazione di un'immagine nera usata per il salvataggio dei punti medi
+            clustering = np.zeros((altezza, larghezza, 1)).astype(np.int16)#uint16 # creazione di un'immagine nera usata per il salvataggio dei punti medi
             print("Clustering...")
             riga = 0 # il contatore di riga viene posto uguale al parametro per far sì che la sottoarea di lavoro non oltrepassi i bordi dell'immagine.
             while (riga < altezza-p): 
