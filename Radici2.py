@@ -4,7 +4,7 @@ import glob
 import os
 
 
-def PippoBaudo(img,risultato,y,x):
+def PippoBaudo(img,y,x):
     #print("ciao")
     coord_y = 0 if y==0 else (y-1)
     coord_x = 0 if x==0 else (x-1)
@@ -13,13 +13,12 @@ def PippoBaudo(img,risultato,y,x):
     while (row_area<coord_y+2):
         col_area = coord_x
         while (col_area<coord_x+2):
-            if (img[row_area,col_area,B] == [255]): # quando si incontra un punto bianco, ovvero un punto medio      ==[255]
+            if (img[row_area,col_area,G] == [255]): # quando si incontra un punto bianco, ovvero un punto medio      ==[255]
                 print("ciao")
                 img[row_area,col_area]=[1,255,255]   # viene riportato, con il colore verde, sullo scheletro iniziale
                 risultato[row_area,col_area]=[0,255,0]        # e, sempre con il colore verde sull'immagine su cui sono presenti scheletro                                                    
             col_area+=1
         row_area+=1
-    return risultato
 
 
 
@@ -61,7 +60,7 @@ while (row < altezza):
             cv.imwrite("aoooo.png",risultato)
             #cv.imshow("a",risultato)
             #cv.waitKey(10)
-            risultato = PippoBaudo(img,risultato,row,col)
+            PippoBaudo(img,risultato,row,col)
         col+=1  # incremento del contatore della colonna
     row+=1  # incremento del contatore della riga
 #print(nodi)
