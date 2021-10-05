@@ -3,12 +3,13 @@ import cv2 as cv
 import glob
 import os
 import sys
-sys.setrecursionlimit(10000)
+import math
+sys.setrecursionlimit(30000)
 
 def angle_between(p1_y, p1_x, p2_y, p2_x):
-    ang1 = np.arctan2(p1_y, p1_x)
-    ang2 = np.arctan2(p2_y, p2_x)
-    return np.rad2deg((ang1 - ang2) % (2 * np.pi))
+    ang1 = np.arctan2(p2_y - p1_y, p2_x - p1_x)
+    #return ang1
+    return ang1*180/math.pi
 
 
 def Colorazione(y,x):
@@ -20,10 +21,10 @@ def Colorazione(y,x):
         while (col_area<x+2):
             if (img[row_area,col_area,B] == 255): # quando si incontra un punto bianco, ovvero un punto medio      ==[255]
                 flag=True
-                img[row_area,col_area,B]=127   # viene riportato, con il colore verde, sullo scheletro iniziale
-                risultato[row_area,col_area]=[255,255,255]
-                #cv.imshow("a",risultato)
-                #cv.waitKey(15)
+                img[row_area,col_area,B]=1   # viene riportato, con il colore verde, sullo scheletro iniziale
+                risultato[row_area,col_area]=[255,255,255]                
+                cv.imshow("a",risultato)
+                cv.waitKey()
                 #print("riga colonna :" + '['+str(row_area) +" "+ str(col_area)+']'+str(img[row_area,col_area]))
                 #print("Passo a Colorazione: "+ str(row_area) +" "+ str(col_area))
                 Colorazione(row_area,col_area) 
@@ -33,9 +34,9 @@ def Colorazione(y,x):
     fine_radice_y = y
     fine_radice_x = x
 
-    if (fine_radice_y==inizio_radice_y and fine_radice_x==inizio_radice_x):
-        return
-
+    '''    if (fine_radice_y==inizio_radice_y and fine_radice_x==inizio_radice_x):
+        return'''
+    '''
     green_found=False
 
     if (flag==False):
@@ -50,10 +51,10 @@ def Colorazione(y,x):
                     green_found=True
                     data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x])
                 col_green+=1
-        row_green+=1
+        row_green+=1'''
 
     angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
-
+    '''
     if (flag==False):
         if(green_found==False):
             #fine_radice_y=y
@@ -62,12 +63,13 @@ def Colorazione(y,x):
             #cv.imshow("a",risultato)
             #cv.waitKey()
             #cv.destroyAllWindows()
-            data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,int(angolo)])
+            data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,angolo])
         elif(green_found==True): 
-            data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,int(angolo)])
-    #print("ciao")
+            data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,angolo])
+    #print("ciao")'''
     
-
+    if (flag==False):
+        data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,angolo])
 
 
 
@@ -78,7 +80,7 @@ B = 0
 G = 1
 R = 2
 
-img = cv.imread(r'a.png')
+img = cv.imread(r'b.png')
 altezza, larghezza = img.shape[:2]
 
 risultato = np.zeros((altezza, larghezza,3))
