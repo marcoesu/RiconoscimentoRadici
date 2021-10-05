@@ -6,10 +6,11 @@ import sys
 import math
 sys.setrecursionlimit(10000)
 
-'''def angle_between(p1_y, p1_x, p2_y, p2_x):
-    ang1 = np.arctan2(p1_y, p1_x)
-    ang2 = np.arctan2(p2_y, p2_x)
-    return np.rad2deg((ang1 - ang2) % (2 * np.pi))'''
+def angle_between(p1_y, p1_x, p2_y, p2_x):
+    ang1 = np.arctan2(p2_y-p1_y,p2_x-p1_x)
+    #ang2 = np.arctan2(p2_y, p2_x)
+    return ang1
+    #return np.rad2deg((ang1 - ang2) % (2 * np.pi))
 
 def length(v):
     return math.sqrt(v[0]**2+v[1]**2)
