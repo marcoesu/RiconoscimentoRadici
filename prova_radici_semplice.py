@@ -19,12 +19,12 @@ def Colorazione(y,x):
     while (row_area<y+2):
         col_area = x-1
         while (col_area<x+2):
-            if (img[row_area,col_area,B] == 255): # quando si incontra un punto bianco, ovvero un punto medio      ==[255]
+            if (img[row_area,col_area,B] >= 250): # quando si incontra un punto bianco, ovvero un punto medio      ==[255]
                 flag=True
-                img[row_area,col_area,B]=1   # viene riportato, con il colore verde, sullo scheletro iniziale
+                img[row_area,col_area,B]=20   # viene riportato, con il colore verde, sullo scheletro iniziale
                 risultato[row_area,col_area]=[255,255,255]                
-                cv.imshow("a",risultato)
-                cv.waitKey()
+                #cv.imshow("a",risultato)
+                #cv.waitKey()
                 #print("riga colonna :" + '['+str(row_area) +" "+ str(col_area)+']'+str(img[row_area,col_area]))
                 #print("Passo a Colorazione: "+ str(row_area) +" "+ str(col_area))
                 Colorazione(row_area,col_area) 
@@ -34,9 +34,9 @@ def Colorazione(y,x):
     fine_radice_y = y
     fine_radice_x = x
 
-    '''    if (fine_radice_y==inizio_radice_y and fine_radice_x==inizio_radice_x):
-        return'''
-    '''
+    if (fine_radice_y==inizio_radice_y and fine_radice_x==inizio_radice_x):
+        return
+    
     green_found=False
 
     if (flag==False):
@@ -44,17 +44,17 @@ def Colorazione(y,x):
         while (row_area<y+2):
             col_green = x-1
             while (col_area<x+2):
-                if (img[row_green,col_green,B] == 0 and img[row_green,col_green,G] == 255 and row_green!=inizio_radice_y and col_green!=inizio_radice_x):
+                if (img[row_green,col_green,B] <= 10 and img[row_green,col_green,G] >= 250 and row_green!=inizio_radice_y and col_green!=inizio_radice_x):
                     print("Punto verde trovato.")
                     fine_radice_y=row_green
                     fine_radice_x=col_green
                     green_found=True
-                    data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x])
+                    #data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x])
                 col_green+=1
-        row_green+=1'''
+        row_green+=1
 
     angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
-    '''
+    
     if (flag==False):
         if(green_found==False):
             #fine_radice_y=y
@@ -66,11 +66,11 @@ def Colorazione(y,x):
             data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,angolo])
         elif(green_found==True): 
             data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,angolo])
-    #print("ciao")'''
+    #print("ciao")
     
-    if (flag==False):
+'''    if (flag==False):
         data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,angolo])
-
+'''
 
 
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
