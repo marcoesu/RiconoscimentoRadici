@@ -19,9 +19,9 @@ def Colorazione(y,x):
     while (row_area<y+2):
         col_area = x-1
         while (col_area<x+2):
-            if (img[row_area,col_area,B] >= 250): # quando si incontra un punto bianco, ovvero un punto medio      ==[255]
+            if (img[row_area,col_area,B] == 255): # quando si incontra un punto bianco, ovvero un punto medio      ==[255]
                 flag=True
-                img[row_area,col_area,B]=20   # viene riportato, con il colore verde, sullo scheletro iniziale
+                img[row_area,col_area,B]=1   # viene riportato, con il colore verde, sullo scheletro iniziale
                 risultato[row_area,col_area]=[255,255,255]                
                 #cv.imshow("a",risultato)
                 #cv.waitKey()
@@ -44,7 +44,7 @@ def Colorazione(y,x):
         while (row_area<y+2):
             col_green = x-1
             while (col_area<x+2):
-                if (img[row_green,col_green,B] <= 10 and img[row_green,col_green,G] >= 250 and row_green!=inizio_radice_y and col_green!=inizio_radice_x):
+                if (img[row_green,col_green,B] == 0 and img[row_green,col_green,G] == 255 and row_green!=inizio_radice_y and col_green!=inizio_radice_x):
                     print("Punto verde trovato.")
                     fine_radice_y=row_green
                     fine_radice_x=col_green
@@ -80,7 +80,7 @@ B = 0
 G = 1
 R = 2
 
-img = cv.imread(r'b.png')
+img = cv.imread(r'c.png')
 altezza, larghezza = img.shape[:2]
 
 risultato = np.zeros((altezza, larghezza,3))
