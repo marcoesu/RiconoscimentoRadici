@@ -22,7 +22,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
             
             scheletro=img.copy() # copia dell'immagine contentente lo scheletro
-            
+            img = img.astype(np.float32)
 
             # applicazione dell'algoritmo di Harris per l'individuazione delle giunzioni e le terminazioni delle radici
             # L'algoritmo prende in ingresso come parametri: l'immagine su cui effettuiamo l'operazione, la dimensione dell'intorno per il rilevamento degli angoli,
