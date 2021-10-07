@@ -83,7 +83,7 @@ def Colorazione(y,x,l_radice):
     #print("ciao")'''
 
     if (flag==False and green_found==False):
-        risultato[row_area,col_area]=[0,0,200]
+        risultato[y,x]=[127,0,200]
         angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
         data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,l_radice,angolo])
 
@@ -109,7 +109,7 @@ B = 0
 G = 1
 R = 2
 
-img = cv.imread(r'b.png')
+img = cv.imread(r'a.png')
 altezza, larghezza = img.shape[:2]
 
 risultato = np.zeros((altezza, larghezza,3))
