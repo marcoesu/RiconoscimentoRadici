@@ -12,6 +12,12 @@ sys.setrecursionlimit(30000)
 #np.set_printoptions(threshold=sys.maxsize)
 
 lato_mm = 5 # lato in mm del quadratino della scacchiera
+l_radice_cm = 0.0 # va inizializzato a float, altrimenti dà errore nel momento in cui lo andiamo a modificare
+
+# Codifica BGR (indici dell'array)
+B = 0
+G = 1
+R = 2
 
 def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
     RN_altezza, RN_larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
@@ -61,12 +67,12 @@ def CalcoloCampione(image): # e restituisce il numero di pixel corrispondente a 
 
     # in corners, abbiamo prima i valori di x e poi i valori di y
     # andiamo a trovare i punti sulla scacchiera in modo da poter poi calcolarne la distanza
-    ret, corners = cv.findCirclesGrid(img_inv, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
+    ret, corners_circle = cv.findCirclesGrid(img_inv, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
 
     # si crea un array (coord) in cui andiamo a inserire tutti gli elementi presenti in corners e andiamo a calcolare la distanza tra i primi due punti
     # ritorna 0 se non vengono trovati punti sulla scacchiera o se questi sono troppo distanti tra loro
     try :    
-        coord = corners.ravel() # inseriamo tutti i valori contetuti nella matrice corners nell'array coord
+        coord = corners_circle.ravel() # inseriamo tutti i valori contetuti nella matrice corners nell'array coord
         #se i punti non sono troppo distanti tra loro
         if((coord[2]-coord[0]) <= 75 and (coord[3]-coord[1])<= 75):
             #calcolo della distanza tra due punti sqrt((x2-x1)^2 + (y2-y1)^2)
@@ -263,7 +269,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             nero = np.zeros((H_altezza,H_larghezza,1)) #crea un'immagine completamente nera
             nero[harris>0.02*harris.max()]=[255] #disegna i punti di interesse trovati con harris su un'immagine nera
 
-            p=5  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
+            p=4  # parametro che indica la distanza del punto in esame dal perimetro della sottoarea di lavoro 
 
             #############
             #     p     #
@@ -340,9 +346,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             file_radici.write("inizio della radice (y);inizio della radice (x);fine della radice (y);fine della radice (x);lunghezza (cm);angolo"+"\n")
 
-            B = 0
-            G = 1
-            R = 2
+
 
             C_altezza, C_larghezza = clustering_rgb.shape[:2]
 
@@ -354,8 +358,6 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             inizio_radice_x = 0
 
             data = []
-            #flag=False
-
 
             row=0
             while (row < C_altezza):
@@ -372,14 +374,14 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                 row+=1  # incremento del contatore della riga
             print(data)
 
-
             #cv.destroyAllWindows()
             cv.imwrite("risultato.png",risultato)
             cv.imwrite("scorrimento.png",clustering_rgb)
 
+            # Ciusura del file .csv
             file_radici.close()
 
-            #Stampa nel terminale del file in esame
+            # Stampa nel terminale del file in esame
             print(str('File '+nomefile+' scansionato.'))
 
         #Stampa nel terminale della cartella in esame 
