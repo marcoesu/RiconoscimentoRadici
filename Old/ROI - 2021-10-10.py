@@ -92,12 +92,8 @@ def CalcoloParametri(y,x,l_radice):
     #risultato[y-1:(y+2),x-1:(x+2)]=[255,0,255]
     flag=False
     green_found=False
-    global fine_radice_y
-    global fine_radice_x
-
     fine_radice_y = y
     fine_radice_x = x
-    
     row_area=y-1
     while (row_area<y+2 and row_area<C_altezza):
         col_area = x-1
@@ -115,12 +111,10 @@ def CalcoloParametri(y,x,l_radice):
                     # Richiamo alla funzione che parte da un pixel bianco o verde trovato nelle prossimità del pixel attualmente in esame
                     CalcoloParametri(row_area,col_area,l_radice)
 
-                elif(clustering_rgb[row_area,col_area,B] == 0 and clustering_rgb[row_area,col_area,R] == 0):
-                    print(str(row_area) + " "+ str(col_area))
+                elif(clustering_rgb[row_area,col_area,B] == 0):
                     l_radice+=1
                     flag=False
                     green_found=True
-                    clustering_rgb[row_area,col_area,R] = 50
                     fine_radice_y = row_area
                     fine_radice_x = col_area
                     risultato[row_area,col_area]=[200,200,20] 
@@ -236,7 +230,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             # se il valore del lato del quadratino è diverso da zero allora calcoliamo perimetro e area in millimetri
             if(lato_pixel != 0):
                 perimetro_cm = (((float(perimetro_pixel)/float(lato_pixel))*float(lato_mm))*0.1).__round__(3) #calcolo del perimetro in millimetri
-                area_cm = (((float(area_pixel)/float(lato_pixel*lato_pixel))*float(lato_mm))*0.01).__round__(3) #calcolo dell'area in millimetri
+                area_cm = (((float(area_pixel)/float(lato_pixel*lato_pixel))*float(lato_mm))*0.1).__round__(3) #calcolo dell'area in millimetri
             elif(lato_pixel == 0 and flag == True):
                 print("I punti trovati non sono adatti per la conversione in millimetri.") #punti troppo distanti
             else:
@@ -365,7 +359,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             # Dati delle estremità della radice analizzata
             inizio_radice_y = 0
-            inizio_radice_x = 0            
+            inizio_radice_x = 0
 
             data = [] # inizializzazione di una lista vuota
 
@@ -374,12 +368,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             while (row < C_altezza):
                 col=0
                 while (col < C_larghezza):
-                    if clustering_rgb[row,col,G] == 255 and clustering_rgb[row,col,B]==0: # quando si incontra un punto verde
+                    if clustering_rgb[row,col,G] == 255 and clustering_rgb[row,col,R]==0: # quando si incontra un punto verde
                         count=0 # viene posto il contatore a zero
                         print("Punto verde.")
                         inizio_radice_y = row
                         inizio_radice_x = col
-                        CalcoloParametri(row,col,count)
+                        CalcoloParametri()(row,col,count)
                     col+=1  # incremento del contatore della colonna
                 row+=1  # incremento del contatore della riga
             print(data)

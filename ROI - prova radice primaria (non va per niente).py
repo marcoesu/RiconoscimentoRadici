@@ -94,6 +94,8 @@ def CalcoloParametri(y,x,l_radice):
     green_found=False
     global fine_radice_y
     global fine_radice_x
+    global c
+    global appoggio
 
     fine_radice_y = y
     fine_radice_x = x
@@ -110,6 +112,9 @@ def CalcoloParametri(y,x,l_radice):
                     clustering_rgb[row_area,col_area,B]=150
                     clustering_rgb[row_area,col_area,G]=200
 
+                    appoggio=np.append(row_area,col_area)
+                    print("Appoggio " +str(appoggio))
+                    #appoggio[c]=[row_area,col_area]
                     risultato[row_area,col_area]=[255,255,255]
                     
                     # Richiamo alla funzione che parte da un pixel bianco o verde trovato nelle prossimità del pixel attualmente in esame
@@ -125,6 +130,11 @@ def CalcoloParametri(y,x,l_radice):
                     fine_radice_x = col_area
                     risultato[row_area,col_area]=[200,200,20] 
                     angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
+                    
+                    appoggio=np.append(row_area,col_area)
+                    radici.append(appoggio)
+                    #print(radici)
+
                     
                     l_radice_cm = 0.0 # inizializzazione del parametro che indica lunghezza radice in cm
                     if(lato_pixel != 0):
@@ -368,7 +378,10 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             inizio_radice_x = 0            
 
             data = [] # inizializzazione di una lista vuota
+            radici = []
+            appoggio=np.ndarray(2,np.uint32)
 
+            c=0
             # Scorrimento immagine ottenuta dall'operazione di clustering
             row=0
             while (row < C_altezza):
@@ -382,7 +395,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                         CalcoloParametri(row,col,count)
                     col+=1  # incremento del contatore della colonna
                 row+=1  # incremento del contatore della riga
-            print(data)
+            #print(data)
 
             #cv.destroyAllWindows()
             cv.imwrite(str(nomefile + "risultato.png"),risultato)

@@ -60,6 +60,7 @@ def CalcoloCampione(image): # e restituisce il numero di pixel corrispondente a 
 
     kernel = np.ones((3,3),np.uint8)
     img = cv.morphologyEx(img, cv.MORPH_CLOSE, kernel) #closing
+    cv.imwrite(str(nomefile+'closing.png'),img)
     img_inv=cv.bitwise_not(img)
 
     size = (2,3) 
@@ -67,7 +68,9 @@ def CalcoloCampione(image): # e restituisce il numero di pixel corrispondente a 
     # in corners, abbiamo prima i valori di x e poi i valori di y
     # andiamo a trovare i punti sulla scacchiera in modo da poter poi calcolarne la distanza
     ret, corners_circle = cv.findCirclesGrid(img_inv, size , cv.CALIB_CB_ASYMMETRIC_GRID + cv.CALIB_CB_CLUSTERING) 
-
+    grid=img_focus.copy()
+    cv.drawChessboardCorners(grid, size,corners_circle,ret)
+    cv.imwrite(str(nomefile + " grid.png"), grid)
     # si crea un array (coord) in cui andiamo a inserire tutti gli elementi presenti in corners e andiamo a calcolare la distanza tra i primi due punti
     # ritorna 0 se non vengono trovati punti sulla scacchiera o se questi sono troppo distanti tra loro
     try :    
@@ -87,17 +90,13 @@ def angle_between(p1_y, p1_x, p2_y, p2_x):
     return ang*180/math.pi
 
 
-def CalcoloParametri(y,x,l_radice):
+def Colorazione(y,x,l_radice):
     if l_radice==0: risultato[row,col]=[0,0,255]
     #risultato[y-1:(y+2),x-1:(x+2)]=[255,0,255]
     flag=False
     green_found=False
-    global fine_radice_y
-    global fine_radice_x
-
     fine_radice_y = y
     fine_radice_x = x
-    
     row_area=y-1
     while (row_area<y+2 and row_area<C_altezza):
         col_area = x-1
@@ -105,28 +104,21 @@ def CalcoloParametri(y,x,l_radice):
             if (clustering_rgb[row_area,col_area,G] == 255 and (row_area!=inizio_radice_y or col_area!=inizio_radice_x)): 
                 if clustering_rgb[row_area,col_area,B] == 255:
                     flag=True
-                    l_radice+=1 # incremento del contatore della lunghezza del tratto (in pixel) 
-                    # Modifica del pixel in clustering_rgb, affinché non venga considerato da successive iterazioni
+                    l_radice+=1
                     clustering_rgb[row_area,col_area,B]=150
                     clustering_rgb[row_area,col_area,G]=200
-
-                    risultato[row_area,col_area]=[255,255,255]
-                    
-                    # Richiamo alla funzione che parte da un pixel bianco o verde trovato nelle prossimità del pixel attualmente in esame
-                    CalcoloParametri(row_area,col_area,l_radice)
-
-                elif(clustering_rgb[row_area,col_area,B] == 0 and clustering_rgb[row_area,col_area,R] == 0):
-                    print(str(row_area) + " "+ str(col_area))
+                    risultato[row_area,col_area]=[255,255,255]                
+                    Colorazione(row_area,col_area,l_radice)
+                elif(clustering_rgb[row_area,col_area,B] == 0):
                     l_radice+=1
                     flag=False
                     green_found=True
-                    clustering_rgb[row_area,col_area,R] = 50
                     fine_radice_y = row_area
                     fine_radice_x = col_area
                     risultato[row_area,col_area]=[200,200,20] 
                     angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
                     
-                    l_radice_cm = 0.0 # inizializzazione del parametro che indica lunghezza radice in cm
+                    l_radice_cm = 0.0
                     if(lato_pixel != 0):
                         l_radice_cm = (((float(l_radice)/float(lato_pixel))*float(lato_mm))*0.1).__round__(3)
                     
@@ -137,14 +129,13 @@ def CalcoloParametri(y,x,l_radice):
         row_area+=1
 
 
-    if (fine_radice_y==inizio_radice_y and fine_radice_x==inizio_radice_x): # se il punto iniziale coincide con il punto finale, non viene considerata come radice
+    if (fine_radice_y==inizio_radice_y and fine_radice_x==inizio_radice_x):
         return 
 
-    if (flag==False and green_found==False): # se non è stato trovato alcun punto attorno a quello considerato
+    if (flag==False and green_found==False):
         risultato[y,x]=[0,0,200]
         angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
 
-        l_radice_cm = 0.0
         if(lato_pixel != 0):
             l_radice_cm = (((float(l_radice)/float(lato_pixel))*float(lato_mm))*0.1).__round__(3)
 
@@ -215,28 +206,34 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             #Rimozione dell'eventuale nastro che tiene fissata la pianta al cartoncino
             mask_inv = RimozioneNastro(mask_inv,subpath,nomefile)
 
-            # Inizializzazione dei parametri in cm
             area_cm = 0 
             perimetro_cm = 0
 
-            area_pixel = np.count_nonzero(mask_inv) # calcolo dell'area in pixel contando il numero di punti bianchi 
-               
-            # Erosione
+            area_pixel = np.count_nonzero(mask_inv) # calcolo dell'area in pixel contando il numero di punti bianchi        
+            
             kernel = np.ones((5,5),np.uint8) # definizione del kernel
             erosion = cv.erode(mask_inv,kernel,iterations = 1) #erosione
             cv.imwrite(str(nomefile +' erosione_pre_thinning.png'), erosion)
 
             #Thinning
             print('Thinning dell\'immagine...')
+            #file1 = open("ciao.txt","w")
+            #thinning = (thin(erosion)*255).astype(np.uint16) #applicazione della funzione thinning
             thinning = (thin(erosion)*255).astype(np.uint8) #applicazione della funzione thinning
+            
+            erosion_per_skel=erosion.astype(bool)
+            skeleton = (skeletonize(erosion_per_skel)*255).astype(np.uint8)
+            
+            cv.imwrite(str(nomefile +' skeletonize.png'), skeleton)
+            #thinning = thinning*255
             print('Thinning eseguito.')
-
+            #file1.write(str(thinning))
             perimetro_pixel = np.count_nonzero(thinning) #calcolo del perimetro in pixel contando il numero di punti bianchi
 
             # se il valore del lato del quadratino è diverso da zero allora calcoliamo perimetro e area in millimetri
             if(lato_pixel != 0):
                 perimetro_cm = (((float(perimetro_pixel)/float(lato_pixel))*float(lato_mm))*0.1).__round__(3) #calcolo del perimetro in millimetri
-                area_cm = (((float(area_pixel)/float(lato_pixel*lato_pixel))*float(lato_mm))*0.01).__round__(3) #calcolo dell'area in millimetri
+                area_cm = (((float(area_pixel)/float(lato_pixel*lato_pixel))*float(lato_mm))*0.1).__round__(3) #calcolo dell'area in millimetri
             elif(lato_pixel == 0 and flag == True):
                 print("I punti trovati non sono adatti per la conversione in millimetri.") #punti troppo distanti
             else:
@@ -254,17 +251,19 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             cv.imwrite(str(nomefile +' cartoncino.png'), cartoncino)
             cv.imwrite(str(nomefile +' hsv.png'), img_hsv)
 
+            #img = cv.cvtColor(thinning,cv.COLOR_BGR2GRAY)
             img = thinning.copy()
 
             print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
             
             scheletro=img.copy() # copia dell'immagine contentente lo scheletro
-            img = img.astype(np.float32) #conversione di img in float32
+            img = img.astype(np.float32)
 
             # applicazione dell'algoritmo di Harris per l'individuazione delle giunzioni e le terminazioni delle radici
             # L'algoritmo prende in ingresso come parametri: l'immagine su cui effettuiamo l'operazione, la dimensione dell'intorno per il rilevamento degli angoli,
             # il parametro di apertura della derivata di Sobel utilizzato e il parametro libero nell'equazione dell'Harris detector
-            harris = cv.cornerHarris(img,2,3,0.08)
+            harris = cv.cornerHarris(img,2,3,0.08) 
+            #harris = cv.cornerHarris(img,2,3,0.04) # applicazione dell'algoritmo di Harris
 
             img = cv.cvtColor(img, cv.COLOR_GRAY2BGR,dstCn=3) # conversione da bianco e nero a RGB
 
@@ -327,7 +326,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                             clustering[(media_y),(media_x)]=[255]
                         elif(n_pixel == 1):  #Se è stato trovato un solo pixel nell'area, questo viene salvato direttamente sull'immagine di uscita.
                             nero[riga][colonna] = [0]
-                            clustering[riga, colonna]=[255]    
+                            clustering[riga][colonna]=[255]    
                     colonna = colonna+1
                 riga = riga+1
             print("Clustering completato.")
@@ -352,10 +351,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             cv.imwrite(nomefile+" harris_clustering.png",confronto)
             print(str('Analisi dello scheletro di '+nomefile+' completata.'))
             print('---------------------------------------------------------------') 
-            
-            #Apertura del file .csv su cui vengono salvati i dati ottenuti
+
             file_radici = open(str(nomefile+'.csv'),'w')
-            # Scrittura su file .csv
+
             file_radici.write("inizio della radice (y);inizio della radice (x);fine della radice (y);fine della radice (x);lunghezza (cm);angolo"+"\n")
 
             C_altezza, C_larghezza = clustering_rgb.shape[:2]
@@ -365,21 +363,21 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             # Dati delle estremità della radice analizzata
             inizio_radice_y = 0
-            inizio_radice_x = 0            
+            inizio_radice_x = 0
 
-            data = [] # inizializzazione di una lista vuota
+            data = []
 
-            # Scorrimento immagine ottenuta dall'operazione di clustering
             row=0
             while (row < C_altezza):
                 col=0
                 while (col < C_larghezza):
-                    if clustering_rgb[row,col,G] == 255 and clustering_rgb[row,col,B]==0: # quando si incontra un punto verde
-                        count=0 # viene posto il contatore a zero
+                    if clustering_rgb[row,col,G] == 255 and clustering_rgb[row,col,R]==0: # quando si incontra un punto bianco, ovvero un punto medio
+                        count=0
                         print("Punto verde.")
                         inizio_radice_y = row
                         inizio_radice_x = col
-                        CalcoloParametri(row,col,count)
+                        Colorazione(row,col,count)
+                        #Colorazione((1 if row==0 else (row)),(1 if col==0 else (col)),count)
                     col+=1  # incremento del contatore della colonna
                 row+=1  # incremento del contatore della riga
             print(data)
@@ -387,6 +385,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             #cv.destroyAllWindows()
             cv.imwrite(str(nomefile + "risultato.png"),risultato)
             cv.imwrite(str(nomefile+"scorrimento.png"),clustering_rgb)
+
 
 
             # Ciusura del file .csv
