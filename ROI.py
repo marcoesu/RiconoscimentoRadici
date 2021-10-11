@@ -1,9 +1,8 @@
 import cv2 as cv
 import numpy as np
-from pyzbar.pyzbar import decode #decodifica del QR
 import os # utilizzata per effettuare operazioni sulle cartelle
 import glob
-from skimage.morphology import thin,skeletonize # pip install scikit-image 
+from skimage.morphology import thin # pip install scikit-image 
 import math
 import sys
 sys.setrecursionlimit(30000)
@@ -94,7 +93,8 @@ def CalcoloParametri(y,x,l_radice):
     green_found=False
     global fine_radice_y
     global fine_radice_x
-
+    global ultimo_p_verde_y
+    global ultimo_p_verde_x
     fine_radice_y = y
     fine_radice_x = x
     
@@ -116,13 +116,14 @@ def CalcoloParametri(y,x,l_radice):
                     CalcoloParametri(row_area,col_area,l_radice)
 
                 elif(clustering_rgb[row_area,col_area,B] == 0 and clustering_rgb[row_area,col_area,R] == 0):
-                    print(str(row_area) + " "+ str(col_area))
                     l_radice+=1
                     flag=False
                     green_found=True
                     clustering_rgb[row_area,col_area,R] = 50
                     fine_radice_y = row_area
                     fine_radice_x = col_area
+                    ultimo_p_verde_y = row_area
+                    ultimo_p_verde_x = col_area
                     risultato[row_area,col_area]=[200,200,20] 
                     angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
                     
@@ -130,9 +131,9 @@ def CalcoloParametri(y,x,l_radice):
                     if(lato_pixel != 0):
                         l_radice_cm = (((float(l_radice)/float(lato_pixel))*float(lato_mm))*0.1).__round__(3)
                     
-                    file_radici.write(str(inizio_radice_y) + ";" + str(inizio_radice_x) + ";" + str(fine_radice_y) + ";" + str(fine_radice_x) + ";" + str(l_radice_cm) + ";" + str(angolo.__round__(3)) + "\n")
+                    file_radici.write(str(inizio_radice_y) + ";" + str(inizio_radice_x) + ";" + str(fine_radice_y) + ";" + str(fine_radice_x) + ";" + str(green_found) + ";" + str(ultimo_p_verde_y)+ ";" + str(ultimo_p_verde_x)+ ";" + str(l_radice) + ";" + str(l_radice_cm) + ";" + str(angolo.__round__(3)) + "\n")
 
-                    data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,l_radice_cm,angolo])
+                    data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,green_found,ultimo_p_verde_y,ultimo_p_verde_x,l_radice,l_radice_cm,angolo])
             col_area+=1
         row_area+=1
 
@@ -148,9 +149,9 @@ def CalcoloParametri(y,x,l_radice):
         if(lato_pixel != 0):
             l_radice_cm = (((float(l_radice)/float(lato_pixel))*float(lato_mm))*0.1).__round__(3)
 
-        file_radici.write(str(inizio_radice_y) + ";" + str(inizio_radice_x) + ";" + str(fine_radice_y) + ";" + str(fine_radice_x) + ";" + str(l_radice_cm) + ";" + str(angolo.__round__(3)) + "\n")
+        file_radici.write(str(inizio_radice_y) + ";" + str(inizio_radice_x) + ";" + str(fine_radice_y) + ";" + str(fine_radice_x) + ";" + str(green_found) + ";" + str(ultimo_p_verde_y)+ ";" + str(ultimo_p_verde_x)+ ";" + str(l_radice) + ";" + str(l_radice_cm) + ";" + str(angolo.__round__(3)) + "\n")
 
-        data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,l_radice_cm,angolo])       
+        data.append([inizio_radice_y,inizio_radice_x,fine_radice_y,fine_radice_x,green_found,ultimo_p_verde_y,ultimo_p_verde_x,l_radice,l_radice_cm,angolo])       
 
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
@@ -350,13 +351,12 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             print("Salvataggio su disco...")
             cv.imwrite(nomefile+" clustering.png",clustering_rgb)
             cv.imwrite(nomefile+" harris_clustering.png",confronto)
-            print(str('Analisi dello scheletro di '+nomefile+' completata.'))
-            print('---------------------------------------------------------------') 
+            print(str('Analisi dello scheletro di '+nomefile+' completata.')) 
             
             #Apertura del file .csv su cui vengono salvati i dati ottenuti
             file_radici = open(str(nomefile+'.csv'),'w')
             # Scrittura su file .csv
-            file_radici.write("inizio della radice (y);inizio della radice (x);fine della radice (y);fine della radice (x);lunghezza (cm);angolo"+"\n")
+            file_radici.write("inizio della radice (y);inizio della radice (x);fine della radice (y);fine della radice (x);punto verde finale;ultimo punto verde incontrato (y);ultimo punto verde incontrato (x);lunghezza (px);lunghezza (cm);angolo"+"\n")
 
             C_altezza, C_larghezza = clustering_rgb.shape[:2]
 
@@ -365,7 +365,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             # Dati delle estremità della radice analizzata
             inizio_radice_y = 0
-            inizio_radice_x = 0            
+            inizio_radice_x = 0
+            ultimo_p_verde_y = 0
+            ultimo_p_verde_x = 0            
 
             data = [] # inizializzazione di una lista vuota
 
@@ -379,6 +381,8 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                         print("Punto verde.")
                         inizio_radice_y = row
                         inizio_radice_x = col
+                        ultimo_p_verde_y = row
+                        ultimo_p_verde_x = col
                         CalcoloParametri(row,col,count)
                     col+=1  # incremento del contatore della colonna
                 row+=1  # incremento del contatore della riga
@@ -394,9 +398,11 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             # Stampa nel terminale del file in esame
             print(str('File '+nomefile+' scansionato.'))
+            print('---------------------------------------------------------------')
 
         #Stampa nel terminale della cartella in esame 
         print(str('Cartella '+sottocartella.name+' scansionata.'))
+        print('---------------------------------------------------------------')
 
 file.close()        
 
