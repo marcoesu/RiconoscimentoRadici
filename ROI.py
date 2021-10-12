@@ -119,7 +119,7 @@ def CalcoloParametri(y,x,l_radice):
                     l_radice+=1
                     flag=False
                     green_found=True
-                    clustering_rgb[row_area,col_area,R] = 50
+                    clustering_rgb[row_area,col_area,R] = 50 # Colorazione del punto verde (solo componente rossa)
                     fine_radice_y = row_area
                     fine_radice_x = col_area
                     ultimo_p_verde_y = row_area
@@ -367,7 +367,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             inizio_radice_y = 0
             inizio_radice_x = 0
             ultimo_p_verde_y = 0
-            ultimo_p_verde_x = 0            
+            ultimo_p_verde_x = 0
+            fine_radice_y = 0
+            fine_radice_x = 0            
 
             data = [] # inizializzazione di una lista vuota
 
@@ -377,7 +379,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                 col=0
                 while (col < C_larghezza):
                     if clustering_rgb[row,col,G] == 255 and clustering_rgb[row,col,B]==0: # quando si incontra un punto verde
-                        count=0 # viene posto il contatore a zero
+                        count=0 # viene posto il contatore a zero, utilizzato per settare a 0 la lunghezza del segmento che verrà analizzato da CalcoloParametri
                         print("Punto verde.")
                         inizio_radice_y = row
                         inizio_radice_x = col
