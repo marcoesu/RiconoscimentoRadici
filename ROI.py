@@ -17,11 +17,10 @@ B = 0
 G = 1
 R = 2
 
-def RimozioneNastro(image, cartella, nomefile):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
+def RimozioneNastro(image):    # Oscuramento della zona del nastro che fissa la pianta al cartoncino
     RN_altezza, RN_larghezza = image.shape[:2]    # Salvataggio delle dimensioni dell'immagine in imput
     r=0     #contatore di riga
     c=0     # indice di taglio
-    nastro = True   # booleano che indica la presenza di nastro in cima al cartoncino
     print("Rimozione nastro...")
     # Definizione dei limiti destro e sinistro per l'operazione di oscuramento
     lim_x1 = int(RN_larghezza*0.25)
@@ -184,12 +183,15 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             ritaglio_y2 = 5700      #(int(altezza*0.95)
             ritaglio_x2 = 3600      #(int(larghezza*0.9))
             img_focus = image[ritaglio_y1:ritaglio_y2,ritaglio_x1:ritaglio_x2] #parziale ritaglio dell'immagine che facilita il riconoscimento del cartoncino
+            cv.imwrite(str(nomefile +' focus.png'), img_focus) #Salvataggio su disco
+
             altezza, larghezza = img_focus.shape[:2]    # dimensioni dell'immagine leggermente ritagliata
 
             img_hsv = cv.cvtColor(img_focus, cv.COLOR_BGR2HSV) #conversione da BGR (Blu, Verde, Rosso) ad HSV
             #Hue Saturation Brightness (HSB), in inglese "tonalità, saturazione e luminosità", indica sia un metodo additivo di composizione dei colori,
             # sia un modo per rappresentarli in un sistema digitale. Viene anche chiamato HSV da Hue Saturation Value (tonalità, saturazione e valore).
-                        
+            cv.imwrite(str(nomefile +' hsv.png'), img_hsv) #Salvataggio su disco       
+
             #Range per selezionare il colore verde con la maschera
             lower_green = np.array([30, 80, 30])          
             upper_green = np.array([150,255,150])                       
@@ -208,13 +210,14 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             scarto_y = int(altezza*0.02) #margine per eliminare i bordi del cartoncino in fondo all'immagine
 
             cartoncino = img_focus[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x,:] #Ritaglio del cartoncino
-          
+            cv.imwrite(str(nomefile +' cartoncino.png'), cartoncino) #Salvataggio su disco
+
             mask_inv = cv.bitwise_not(mask) # Inversione della maschera effettuata per evidenziare le radici
 
             mask_inv = mask_inv[y:y+h-scarto_y,x+scarto_x:x+w-scarto_x]    # Ritaglio della maschera alle dimensioni del contorno del cartoncino
             cv.imwrite(str(nomefile +' maschera_invertita_pre_rim_nastro.png'), mask_inv)
             #Rimozione dell'eventuale nastro che tiene fissata la pianta al cartoncino
-            mask_inv = RimozioneNastro(mask_inv,subpath,nomefile)
+            mask_inv = RimozioneNastro(mask_inv)
 
             # Inizializzazione dei parametri in cm
             area_cm = 0 
@@ -249,12 +252,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             file.write(str(cartella) + ";" + str(data) + ";" + str(perimetro_pixel) + ";" + str(perimetro_cm) + ";" + str(area_pixel) + ";" + str(area_cm) + ";" + str(lato_pixel) + "\n") 
 
             # Salvataggio delle immagini elaborate su disco
-            cv.imwrite(str(nomefile +' focus.png'), img_focus)
             cv.imwrite(str(nomefile +' maschera_invertita.png'), mask_inv)
             cv.imwrite(str(nomefile +' thinning.png'), thinning)
-            cv.imwrite(str(nomefile +' cartoncino.png'), cartoncino)
-            cv.imwrite(str(nomefile +' hsv.png'), img_hsv)
-
+            
             img = thinning.copy()
 
             print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
