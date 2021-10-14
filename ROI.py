@@ -196,11 +196,11 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             lower_green = np.array([30, 80, 30])          
             upper_green = np.array([150,255,150])                       
             mask = cv.inRange(img_hsv, lower_green, upper_green) # Applicazione della maschera
-
+            thresh = mask.copy()
             cv.imwrite(str(nomefile +' maschera.png'), mask)
 
             #Ricerca dei contorni utlizzando la maschera
-            ret, thresh = cv.threshold(mask, 127, 255, cv.THRESH_BINARY) # necessita di un'immagine in scala di grigi che viene convertita in un'immagine binaria
+            #ret, thresh = cv.threshold(mask, 127, 255, cv.THRESH_BINARY) # necessita di un'immagine in scala di grigi che viene convertita in un'immagine binaria
             contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_NONE) #Ricerca dei contorni utlizzando le informazioni ottenute attraverso il tresholding
             c = max(contours, key=cv.contourArea)   #Ricerca del più grande contorno nell'immagine utilizzando come parametro di giudizio l'area del contorno
 
@@ -259,7 +259,7 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
             
-            scheletro=img.copy() # copia dell'immagine contentente lo scheletro
+            scheletro=thinning.copy() # copia dell'immagine contentente lo scheletro
             img = img.astype(np.float32) #conversione di img in float32
 
             # applicazione dell'algoritmo di Harris per l'individuazione delle giunzioni e le terminazioni delle radici
