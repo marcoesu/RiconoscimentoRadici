@@ -255,10 +255,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             cv.imwrite(str(nomefile +' thinning.png'), thinning)
             
             img = thinning.copy()
-
-            print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
-            
             scheletro=thinning.copy() # copia dell'immagine contentente lo scheletro
+            
+            print(str('Analisi dello scheletro di '+nomefile+' in corso...'))
             img = img.astype(np.float32) #conversione di img in float32
 
             # applicazione dell'algoritmo di Harris per l'individuazione delle giunzioni e le terminazioni delle radici
