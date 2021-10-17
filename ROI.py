@@ -81,13 +81,11 @@ def CalcoloCampione(image): # e restituisce il numero di pixel corrispondente a 
 
 def angle_between(p1_y, p1_x, p2_y, p2_x):
     ang = np.arctan2(p2_y - p1_y, p2_x - p1_x)
-    #return ang1
     return ang*180/math.pi
 
 
 def CalcoloParametri(y,x,l_radice):
-    if l_radice==0: risultato[row,col]=[0,0,255]
-    #risultato[y-1:(y+2),x-1:(x+2)]=[255,0,255]
+    #if l_radice==0: risultato[row,col]=[0,0,255]
     flag=False
     green_found=False
     global fine_radice_y
@@ -98,32 +96,31 @@ def CalcoloParametri(y,x,l_radice):
     fine_radice_x = x
     
     row_area=y-1
-    while (row_area<y+2 and row_area<C_altezza):
+    while (row_area<y+2 and row_area<H_altezza):
         col_area = x-1
-        while (col_area<x+2 and col_area<C_larghezza):
+        while (col_area<x+2 and col_area<H_larghezza):
             if (clustering_rgb[row_area,col_area,G] == 255 and (row_area!=inizio_radice_y or col_area!=inizio_radice_x)): 
                 if clustering_rgb[row_area,col_area,B] == 255:
                     flag=True
                     l_radice+=1 # incremento del contatore della lunghezza del tratto (in pixel) 
                     # Modifica del pixel in clustering_rgb, affinché non venga considerato da successive iterazioni
                     clustering_rgb[row_area,col_area,B]=150
-                    clustering_rgb[row_area,col_area,G]=200
+                    clustering_rgb[row_area,col_area,G]=150
 
-                    risultato[row_area,col_area]=[255,255,255]
+                    #risultato[row_area,col_area]=[255,255,255]
                     
                     # Richiamo alla funzione che parte da un pixel bianco o verde trovato nelle prossimità del pixel attualmente in esame
                     CalcoloParametri(row_area,col_area,l_radice)
 
                 elif(clustering_rgb[row_area,col_area,B] == 0 and clustering_rgb[row_area,col_area,R] == 0):
                     l_radice+=1
-                    flag=False
                     green_found=True
                     clustering_rgb[row_area,col_area,R] = 50 # Colorazione del punto verde (solo componente rossa)
                     fine_radice_y = row_area
                     fine_radice_x = col_area
                     ultimo_p_verde_y = row_area
                     ultimo_p_verde_x = col_area
-                    risultato[row_area,col_area]=[200,200,20] 
+                    #risultato[row_area,col_area]=[200,200,20] 
                     angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
                     
                     l_radice_cm = 0.0 # inizializzazione del parametro che indica lunghezza radice in cm
@@ -141,7 +138,7 @@ def CalcoloParametri(y,x,l_radice):
         return 
 
     if (flag==False and green_found==False): # se non è stato trovato alcun punto attorno a quello considerato
-        risultato[y,x]=[0,0,200]
+        #risultato[y,x]=[0,0,200]
         angolo = angle_between(fine_radice_y,fine_radice_x,inizio_radice_y,inizio_radice_x)
 
         l_radice_cm = 0.0
@@ -155,7 +152,7 @@ def CalcoloParametri(y,x,l_radice):
 path = os.path.abspath(os.path.dirname(__file__)) #salva nella variabile path il percorso globale della cartella in cui si trova il file .py in esecuzione
 os.chdir(path)  #cambio della cartella attuale nella cartella in cui si trova il file .py
 
-file = open("risultati.csv","w") #apertura del file per scrivere al suo interno il nome del file, perimetro e area
+file = open("misurazioni.csv","w") #apertura del file per scrivere al suo interno il nome del file, perimetro e area
 file.write("soggetto;data_ora_scatto;perimetro_px;perimetro_cm;area_pixel;area_cm;lato_pixel" + "\n") # definizione del'intestazione delle colonne
 
 scansione = os.scandir() #scansione dei file all'interno della cartella path
@@ -356,9 +353,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
             # Scrittura su file .csv
             file_radici.write("inizio della radice (y);inizio della radice (x);fine della radice (y);fine della radice (x);punto verde finale;ultimo punto verde incontrato (y);ultimo punto verde incontrato (x);lunghezza (px);lunghezza (cm);angolo"+"\n")
 
-            C_altezza, C_larghezza = clustering_rgb.shape[:2]
+            #C_altezza, C_larghezza = clustering_rgb.shape[:2]
 
-            risultato = np.zeros((C_altezza, C_larghezza,3))
+            #risultato = np.zeros((C_altezza, C_larghezza,3))
 
 
             # Dati delle estremità della radice analizzata
@@ -373,9 +370,9 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
 
             # Scorrimento immagine ottenuta dall'operazione di clustering
             row=0
-            while (row < C_altezza):
+            while (row < H_altezza):
                 col=0
-                while (col < C_larghezza):
+                while (col < H_larghezza):
                     if clustering_rgb[row,col,G] == 255 and clustering_rgb[row,col,B]==0: # quando si incontra un punto verde
                         count=0 # viene posto il contatore a zero, utilizzato per settare a 0 la lunghezza del segmento che verrà analizzato da CalcoloParametri
                         print("Punto verde.")
@@ -388,12 +385,11 @@ for sottocartella in scansione: #ciclo per scansionare le sottocartelle di path
                 row+=1  # incremento del contatore della riga
             print(data)
 
-            #cv.destroyAllWindows()
-            cv.imwrite(str(nomefile + "risultato.png"),risultato)
-            cv.imwrite(str(nomefile+"scorrimento.png"),clustering_rgb)
+            #cv.imwrite(str(nomefile + "risultato.png"),risultato)
+            #cv.imwrite(str(nomefile+"scorrimento.png"),clustering_rgb)
 
 
-            # Ciusura del file .csv
+            # Chiusura del file .csv
             file_radici.close()
 
             # Stampa nel terminale del file in esame
